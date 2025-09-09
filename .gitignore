@@ -1,0 +1,38 @@
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if we add them later)
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Browser cache
+.sass-cache/

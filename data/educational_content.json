@@ -1,0 +1,285 @@
+{
+  "lessons": {
+    "introduction": {
+      "title": "The Central Dogma of Molecular Biology",
+      "content": "The Central Dogma describes the flow of genetic information in living organisms. This fundamental principle explains how genetic instructions stored in DNA are converted into functional proteins that perform cellular work.",
+      "keyPoints": [
+        "DNA contains the genetic blueprint of life",
+        "Information flows from DNA to RNA to Proteins", 
+        "This process is universal across all life forms",
+        "Each step is highly regulated and precise"
+      ],
+      "duration": "2 minutes"
+    },
+    "transcription": {
+      "title": "DNA Transcription: Creating the Message",
+      "content": "Transcription is the first step where genetic information is copied from DNA into messenger RNA (mRNA). This process occurs in the nucleus and is carried out by RNA polymerase enzymes.",
+      "keyPoints": [
+        "RNA polymerase reads the DNA template strand (3' to 5')",
+        "mRNA is synthesized in the 5' to 3' direction", 
+        "Thymine (T) in DNA is replaced by Uracil (U) in RNA",
+        "The process includes initiation, elongation, and termination"
+      ],
+      "vocabulary": {
+        "RNA Polymerase": "The enzyme that synthesizes RNA from a DNA template",
+        "Template Strand": "The DNA strand used as a template for RNA synthesis",
+        "Promoter": "DNA sequence where RNA polymerase binds to start transcription",
+        "5' to 3' direction": "The direction of RNA synthesis"
+      },
+      "duration": "3 minutes"
+    },
+    "translation": {
+      "title": "RNA Translation: Building Proteins", 
+      "content": "Translation is the process where mRNA is decoded by ribosomes to produce proteins. Transfer RNA (tRNA) molecules deliver specific amino acids based on the genetic code.",
+      "keyPoints": [
+        "Ribosomes are the protein synthesis machinery",
+        "The genetic code is read in triplets called codons",
+        "Each codon specifies one amino acid",
+        "Start codon (AUG) begins translation, stop codons end it"
+      ],
+      "vocabulary": {
+        "Ribosome": "Cellular structure where proteins are synthesized",
+        "Codon": "Three-nucleotide sequence that codes for an amino acid",
+        "tRNA": "Transfer RNA that delivers amino acids to the ribosome",
+        "Amino Acid": "Building blocks of proteins"
+      },
+      "duration": "4 minutes"
+    }
+  },
+  "quizzes": {
+    "transcription": {
+      "title": "Transcription Knowledge Check",
+      "questions": [
+        {
+          "id": "trans_q1",
+          "type": "multiple_choice",
+          "question": "What enzyme is responsible for transcribing DNA into mRNA?",
+          "options": [
+            "DNA polymerase",
+            "RNA polymerase", 
+            "Ribosome",
+            "tRNA synthetase"
+          ],
+          "correct": 1,
+          "explanation": "RNA polymerase is the enzyme that reads DNA and synthesizes complementary mRNA during transcription."
+        },
+        {
+          "id": "trans_q2", 
+          "type": "multiple_choice",
+          "question": "In which direction does RNA polymerase read the DNA template strand?",
+          "options": [
+            "5' to 3'",
+            "3' to 5'",
+            "Both directions simultaneously", 
+            "Direction doesn't matter"
+          ],
+          "correct": 1,
+          "explanation": "RNA polymerase reads the DNA template strand in the 3' to 5' direction, synthesizing mRNA in the 5' to 3' direction."
+        },
+        {
+          "id": "trans_q3",
+          "type": "multiple_choice", 
+          "question": "What nucleotide in mRNA replaces thymine from DNA?",
+          "options": [
+            "Adenine (A)",
+            "Cytosine (C)",
+            "Guanine (G)",
+            "Uracil (U)"
+          ],
+          "correct": 3,
+          "explanation": "Uracil (U) replaces thymine (T) in RNA. So DNA's A-T base pairs become A-U base pairs in mRNA."
+        }
+      ],
+      "passingScore": 70
+    },
+    "translation": {
+      "title": "Translation Knowledge Check",
+      "questions": [
+        {
+          "id": "trans_q1",
+          "type": "multiple_choice",
+          "question": "How many nucleotides make up one codon?",
+          "options": [
+            "2",
+            "3", 
+            "4",
+            "5"
+          ],
+          "correct": 1,
+          "explanation": "A codon consists of three nucleotides. This triplet code allows for 64 possible combinations (4³) to specify 20 amino acids plus start/stop signals."
+        },
+        {
+          "id": "trans_q2",
+          "type": "multiple_choice", 
+          "question": "What is the start codon for protein synthesis?",
+          "options": [
+            "UAA",
+            "UAG",
+            "UGA", 
+            "AUG"
+          ],
+          "correct": 3,
+          "explanation": "AUG is the start codon that initiates protein synthesis and codes for methionine, the first amino acid in most proteins."
+        },
+        {
+          "id": "trans_q3",
+          "type": "multiple_choice",
+          "question": "Where does translation occur in the cell?",
+          "options": [
+            "Nucleus",
+            "Ribosomes",
+            "Mitochondria only",
+            "Cell membrane"
+          ],
+          "correct": 1,
+          "explanation": "Translation occurs at ribosomes, which can be found free in the cytoplasm or attached to the endoplasmic reticulum."
+        }
+      ],
+      "passingScore": 70
+    }
+  },
+  "tips": [
+    {
+      "id": "tip_1",
+      "title": "Memory Tip: Base Pairing",
+      "content": "Remember DNA base pairing with 'ATGC': Adenine with Thymine, Guanine with Cytosine. In RNA, Thymine becomes Uracil!",
+      "icon": "💡"
+    },
+    {
+      "id": "tip_2", 
+      "title": "Directional Flow",
+      "content": "Think of the Central Dogma as a one-way street: DNA → RNA → Protein. Information flows in this direction!",
+      "icon": "🎯"
+    },
+    {
+      "id": "tip_3",
+      "title": "Codon Triplets",
+      "content": "Codons work in groups of 3 because 3 bases provide 64 combinations (4³), enough for 20 amino acids plus start/stop signals.",
+      "icon": "🔢"
+    },
+    {
+      "id": "tip_4",
+      "title": "RNA Polymerase Direction", 
+      "content": "RNA polymerase 'unzips' DNA and reads 3'→5' to write mRNA 5'→3'. Think of it as reading backwards to write forwards!",
+      "icon": "🔄"
+    }
+  ],
+  "glossary": {
+    "Central Dogma": "The principle that genetic information flows from DNA to RNA to proteins",
+    "Transcription": "The process of copying genetic information from DNA to mRNA",
+    "Translation": "The process of converting mRNA into proteins using ribosomes",
+    "DNA": "Deoxyribonucleic acid - the molecule that stores genetic information",
+    "RNA": "Ribonucleic acid - various types involved in protein synthesis",
+    "mRNA": "Messenger RNA - carries genetic information from DNA to ribosomes", 
+    "tRNA": "Transfer RNA - delivers amino acids to ribosomes during translation",
+    "Ribosome": "Cellular structure where proteins are synthesized",
+    "Codon": "Three-nucleotide sequence that specifies an amino acid",
+    "Amino Acid": "Basic building blocks of proteins",
+    "RNA Polymerase": "Enzyme that synthesizes RNA from DNA template",
+    "Start Codon": "AUG - initiates protein synthesis",
+    "Stop Codon": "UAA, UAG, or UGA - terminates protein synthesis",
+    "Genetic Code": "The set of rules by which information in DNA/RNA is translated into proteins"
+  },
+  "animations": {
+    "transcription": {
+      "keyframes": [
+        {
+          "time": 0,
+          "event": "rna_polymerase_binding",
+          "description": "RNA polymerase recognizes and binds to the promoter region"
+        },
+        {
+          "time": 1000,
+          "event": "dna_unwinding", 
+          "description": "DNA double helix unwinds to expose the template strand"
+        },
+        {
+          "time": 2000,
+          "event": "elongation_starts",
+          "description": "RNA polymerase begins moving along DNA, synthesizing mRNA"
+        },
+        {
+          "time": 4000,
+          "event": "elongation_continues",
+          "description": "mRNA chain grows as RNA polymerase progresses"
+        },
+        {
+          "time": 6000,
+          "event": "termination",
+          "description": "Transcription terminates when RNA polymerase reaches stop signal"
+        }
+      ]
+    },
+    "translation": {
+      "keyframes": [
+        {
+          "time": 0,
+          "event": "ribosome_assembly",
+          "description": "Small and large ribosomal subunits assemble on mRNA"
+        },
+        {
+          "time": 1500,
+          "event": "start_codon_recognition",
+          "description": "Ribosome recognizes AUG start codon"
+        },
+        {
+          "time": 3000,
+          "event": "trna_delivery",
+          "description": "tRNA molecules deliver amino acids matching codons"
+        },
+        {
+          "time": 5000,
+          "event": "peptide_bond_formation",
+          "description": "Amino acids join together forming peptide bonds"
+        },
+        {
+          "time": 7000,
+          "event": "translocation",
+          "description": "Ribosome moves to next codon, continuing synthesis"
+        },
+        {
+          "time": 9000,
+          "event": "termination",
+          "description": "Stop codon reached, protein synthesis complete"
+        }
+      ]
+    }
+  },
+  "achievements": [
+    {
+      "id": "first_transcription",
+      "name": "RNA Pioneer",
+      "description": "Complete your first transcription animation",
+      "icon": "🧬",
+      "points": 10
+    },
+    {
+      "id": "perfect_quiz",
+      "name": "Perfect Score", 
+      "description": "Score 100% on any quiz",
+      "icon": "🏆",
+      "points": 25
+    },
+    {
+      "id": "step_master",
+      "name": "Step-by-Step Master",
+      "description": "Complete a simulation using step-by-step mode",
+      "icon": "👣",
+      "points": 15
+    },
+    {
+      "id": "speed_demon",
+      "name": "Speed Demon",
+      "description": "Complete simulation at maximum speed",
+      "icon": "⚡",
+      "points": 20
+    },
+    {
+      "id": "mutation_explorer",
+      "name": "Mutation Explorer", 
+      "description": "Try 5 different DNA sequences",
+      "icon": "🔬",
+      "points": 30
+    }
+  ]
+}

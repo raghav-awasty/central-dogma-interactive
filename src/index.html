@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Dogma Interactive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .controls button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background: #0056b3;
+        }
+        .controls input, .controls select {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #simulation-canvas {
+            margin-top: 20px;
+        }
+        .info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Central Dogma Interactive</h1>
+        <p>Enter an mRNA sequence to see the translation process.</p>
+        
+        <div class="controls">
+            <label>mRNA Sequence:</label>
+            <input type="text" id="mrna-input" value="AUGAAACGCAUUUAA" style="width: 200px;">
+            <br><br>
+            
+            <label>Animation Speed:</label>
+            <select id="speed-select">
+                <option value="500">Fast (500ms)</option>
+                <option value="1200" selected>Normal (1200ms)</option>
+                <option value="2000">Slow (2000ms)</option>
+            </select>
+            <br><br>
+            
+            <button id="start-btn">Start Translation</button>
+            <button id="pause-btn">Pause</button>
+            <button id="resume-btn">Resume</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+        
+        <div id="simulation-canvas"></div>
+        
+        <div class="info">
+            <p>This animation shows how mRNA is translated into protein by the ribosome.</p>
+        </div>
+    </div>
+
+    <script src="../public/js/translation.js"></script>
+    <script>
+        let translationEngine;
+        let geneticData = {
+            "AUG": "Methionine",
+            "AAA": "Lysine", 
+            "CGC": "Arginine",
+            "AUU": "Isoleucine",
+            "UAA": "Stop",
+            "UUU": "Phenylalanine"
+        };
+
+        async function initialize() {
+            translationEngine = new TranslationEngine('simulation-canvas');
+            await translationEngine.initialize(geneticData, {});
+
+            translationEngine.setEducationalCallback((eventType, data) => {
+                console.log('Educational Event:', eventType, data);
+                showFeedback(eventType, data);
+            });
+
+            document.getElementById('start-btn').addEventListener('click', startTranslation);
+            document.getElementById('pause-btn').addEventListener('click', () => translationEngine.pause());
+            document.getElementById('resume-btn').addEventListener('click', () => translationEngine.resume());
+            document.getElementById('reset-btn').addEventListener('click', () => translationEngine.reset());
+
+            document.getElementById('speed-select').addEventListener('change', (e) => {
+                translationEngine.setSpeed(parseInt(e.target.value));
+            });
+
+            console.log('Central Dogma Interactive initialized!');
+        }
+
+        function startTranslation() {
+            const mrnaSequence = document.getElementById('mrna-input').value.toUpperCase();
+            if (!mrnaSequence) {
+                alert('Please enter an mRNA sequence');
+                return;
+            }
+            console.log('Starting translation:', mrnaSequence);
+            translationEngine.startTranslation(mrnaSequence);
+        }
+
+        function showFeedback(eventType, data) {
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 12px;
+                border-radius: 6px;
+                max-width: 300px;
+                z-index: 1000;
+            `;
+            
+            let message = '';
+            switch(eventType) {
+                case 'translation:started':
+                    message = `Translation started for sequence: ${data.sequence.substring(0, 10)}...`;
+                    break;
+                case 'codon:translated':
+                    message = `Codon ${data.codon} → ${data.aminoAcid}`;
+                    break;
+                case 'stop:encountered':
+                    message = `Stop codon encountered. Final protein: ${data.proteinLength} amino acids`;
+                    break;
+                case 'translation:complete':
+                    message = `Translation complete! Protein: ${data.sequence}`;
+                    break;
+                default:
+                    message = `Event: ${eventType}`;
+            }
+            
+            feedbackDiv.textContent = message;
+            document.body.appendChild(feedbackDiv);
+
+            setTimeout(() => {
+                if (feedbackDiv.parentNode) {
+                    feedbackDiv.parentNode.removeChild(feedbackDiv);
+                }
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>

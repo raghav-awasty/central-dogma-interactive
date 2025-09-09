@@ -1,0 +1,439 @@
+{
+  "codon_table": {
+    "UUU": {
+      "amino_acid": "Phenylalanine",
+      "abbreviation": "Phe",
+      "symbol": "F",
+      "category": "nonpolar"
+    },
+    "UUC": {
+      "amino_acid": "Phenylalanine",
+      "abbreviation": "Phe",
+      "symbol": "F",
+      "category": "nonpolar"
+    },
+    "UUA": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "UUG": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "UCU": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "UCC": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "UCA": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "UCG": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "UAU": {
+      "amino_acid": "Tyrosine",
+      "abbreviation": "Tyr",
+      "symbol": "Y",
+      "category": "polar"
+    },
+    "UAC": {
+      "amino_acid": "Tyrosine",
+      "abbreviation": "Tyr",
+      "symbol": "Y",
+      "category": "polar"
+    },
+    "UAA": {
+      "amino_acid": "STOP",
+      "abbreviation": "STOP",
+      "symbol": "*",
+      "category": "stop",
+      "name": "Ochre"
+    },
+    "UAG": {
+      "amino_acid": "STOP",
+      "abbreviation": "STOP",
+      "symbol": "*",
+      "category": "stop",
+      "name": "Amber"
+    },
+    "UGU": {
+      "amino_acid": "Cysteine",
+      "abbreviation": "Cys",
+      "symbol": "C",
+      "category": "polar"
+    },
+    "UGC": {
+      "amino_acid": "Cysteine",
+      "abbreviation": "Cys",
+      "symbol": "C",
+      "category": "polar"
+    },
+    "UGA": {
+      "amino_acid": "STOP",
+      "abbreviation": "STOP",
+      "symbol": "*",
+      "category": "stop",
+      "name": "Opal"
+    },
+    "UGG": {
+      "amino_acid": "Tryptophan",
+      "abbreviation": "Trp",
+      "symbol": "W",
+      "category": "nonpolar"
+    },
+    "CUU": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "CUC": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "CUA": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "CUG": {
+      "amino_acid": "Leucine",
+      "abbreviation": "Leu",
+      "symbol": "L",
+      "category": "nonpolar"
+    },
+    "CCU": {
+      "amino_acid": "Proline",
+      "abbreviation": "Pro",
+      "symbol": "P",
+      "category": "nonpolar"
+    },
+    "CCC": {
+      "amino_acid": "Proline",
+      "abbreviation": "Pro",
+      "symbol": "P",
+      "category": "nonpolar"
+    },
+    "CCA": {
+      "amino_acid": "Proline",
+      "abbreviation": "Pro",
+      "symbol": "P",
+      "category": "nonpolar"
+    },
+    "CCG": {
+      "amino_acid": "Proline",
+      "abbreviation": "Pro",
+      "symbol": "P",
+      "category": "nonpolar"
+    },
+    "CAU": {
+      "amino_acid": "Histidine",
+      "abbreviation": "His",
+      "symbol": "H",
+      "category": "basic"
+    },
+    "CAC": {
+      "amino_acid": "Histidine",
+      "abbreviation": "His",
+      "symbol": "H",
+      "category": "basic"
+    },
+    "CAA": {
+      "amino_acid": "Glutamine",
+      "abbreviation": "Gln",
+      "symbol": "Q",
+      "category": "polar"
+    },
+    "CAG": {
+      "amino_acid": "Glutamine",
+      "abbreviation": "Gln",
+      "symbol": "Q",
+      "category": "polar"
+    },
+    "CGU": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "CGC": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "CGA": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "CGG": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "AUU": {
+      "amino_acid": "Isoleucine",
+      "abbreviation": "Ile",
+      "symbol": "I",
+      "category": "nonpolar"
+    },
+    "AUC": {
+      "amino_acid": "Isoleucine",
+      "abbreviation": "Ile",
+      "symbol": "I",
+      "category": "nonpolar"
+    },
+    "AUA": {
+      "amino_acid": "Isoleucine",
+      "abbreviation": "Ile",
+      "symbol": "I",
+      "category": "nonpolar"
+    },
+    "AUG": {
+      "amino_acid": "Methionine",
+      "abbreviation": "Met",
+      "symbol": "M",
+      "category": "nonpolar",
+      "start_codon": true
+    },
+    "ACU": {
+      "amino_acid": "Threonine",
+      "abbreviation": "Thr",
+      "symbol": "T",
+      "category": "polar"
+    },
+    "ACC": {
+      "amino_acid": "Threonine",
+      "abbreviation": "Thr",
+      "symbol": "T",
+      "category": "polar"
+    },
+    "ACA": {
+      "amino_acid": "Threonine",
+      "abbreviation": "Thr",
+      "symbol": "T",
+      "category": "polar"
+    },
+    "ACG": {
+      "amino_acid": "Threonine",
+      "abbreviation": "Thr",
+      "symbol": "T",
+      "category": "polar"
+    },
+    "AAU": {
+      "amino_acid": "Asparagine",
+      "abbreviation": "Asn",
+      "symbol": "N",
+      "category": "polar"
+    },
+    "AAC": {
+      "amino_acid": "Asparagine",
+      "abbreviation": "Asn",
+      "symbol": "N",
+      "category": "polar"
+    },
+    "AAA": {
+      "amino_acid": "Lysine",
+      "abbreviation": "Lys",
+      "symbol": "K",
+      "category": "basic"
+    },
+    "AAG": {
+      "amino_acid": "Lysine",
+      "abbreviation": "Lys",
+      "symbol": "K",
+      "category": "basic"
+    },
+    "AGU": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "AGC": {
+      "amino_acid": "Serine",
+      "abbreviation": "Ser",
+      "symbol": "S",
+      "category": "polar"
+    },
+    "AGA": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "AGG": {
+      "amino_acid": "Arginine",
+      "abbreviation": "Arg",
+      "symbol": "R",
+      "category": "basic"
+    },
+    "GUU": {
+      "amino_acid": "Valine",
+      "abbreviation": "Val",
+      "symbol": "V",
+      "category": "nonpolar"
+    },
+    "GUC": {
+      "amino_acid": "Valine",
+      "abbreviation": "Val",
+      "symbol": "V",
+      "category": "nonpolar"
+    },
+    "GUA": {
+      "amino_acid": "Valine",
+      "abbreviation": "Val",
+      "symbol": "V",
+      "category": "nonpolar"
+    },
+    "GUG": {
+      "amino_acid": "Valine",
+      "abbreviation": "Val",
+      "symbol": "V",
+      "category": "nonpolar"
+    },
+    "GCU": {
+      "amino_acid": "Alanine",
+      "abbreviation": "Ala",
+      "symbol": "A",
+      "category": "nonpolar"
+    },
+    "GCC": {
+      "amino_acid": "Alanine",
+      "abbreviation": "Ala",
+      "symbol": "A",
+      "category": "nonpolar"
+    },
+    "GCA": {
+      "amino_acid": "Alanine",
+      "abbreviation": "Ala",
+      "symbol": "A",
+      "category": "nonpolar"
+    },
+    "GCG": {
+      "amino_acid": "Alanine",
+      "abbreviation": "Ala",
+      "symbol": "A",
+      "category": "nonpolar"
+    },
+    "GAU": {
+      "amino_acid": "Aspartic acid",
+      "abbreviation": "Asp",
+      "symbol": "D",
+      "category": "acidic"
+    },
+    "GAC": {
+      "amino_acid": "Aspartic acid",
+      "abbreviation": "Asp",
+      "symbol": "D",
+      "category": "acidic"
+    },
+    "GAA": {
+      "amino_acid": "Glutamic acid",
+      "abbreviation": "Glu",
+      "symbol": "E",
+      "category": "acidic"
+    },
+    "GAG": {
+      "amino_acid": "Glutamic acid",
+      "abbreviation": "Glu",
+      "symbol": "E",
+      "category": "acidic"
+    },
+    "GGU": {
+      "amino_acid": "Glycine",
+      "abbreviation": "Gly",
+      "symbol": "G",
+      "category": "nonpolar"
+    },
+    "GGC": {
+      "amino_acid": "Glycine",
+      "abbreviation": "Gly",
+      "symbol": "G",
+      "category": "nonpolar"
+    },
+    "GGA": {
+      "amino_acid": "Glycine",
+      "abbreviation": "Gly",
+      "symbol": "G",
+      "category": "nonpolar"
+    },
+    "GGG": {
+      "amino_acid": "Glycine",
+      "abbreviation": "Gly",
+      "symbol": "G",
+      "category": "nonpolar"
+    }
+  },
+  "amino_acid_properties": {
+    "nonpolar": {
+      "description": "Hydrophobic amino acids that tend to be buried in protein cores",
+      "color": "#95a5a6"
+    },
+    "polar": {
+      "description": "Hydrophilic amino acids that can form hydrogen bonds",
+      "color": "#3498db"
+    },
+    "acidic": {
+      "description": "Negatively charged amino acids at physiological pH",
+      "color": "#e74c3c"
+    },
+    "basic": {
+      "description": "Positively charged amino acids at physiological pH",
+      "color": "#2ecc71"
+    },
+    "stop": {
+      "description": "Stop codons that terminate protein synthesis",
+      "color": "#34495e"
+    }
+  },
+  "nucleotide_colors": {
+    "A": "#ff6b6b",
+    "T": "#4ecdc4",
+    "G": "#45b7d1",
+    "C": "#f9ca24",
+    "U": "#6c5ce7"
+  },
+  "educational_facts": {
+    "genetic_code": [
+      "The genetic code is nearly universal across all life forms",
+      "There are 64 possible codons but only 20 amino acids plus stop signals",
+      "This redundancy provides protection against mutations",
+      "The genetic code is read in triplets without punctuation"
+    ],
+    "start_codon": [
+      "AUG is the most common start codon in both prokaryotes and eukaryotes",
+      "It codes for methionine in eukaryotes and N-formylmethionine in prokaryotes",
+      "Alternative start codons exist but are less common"
+    ],
+    "stop_codons": [
+      "UAA (ochre), UAG (amber), and UGA (opal) are the three stop codons",
+      "They do not code for any amino acid",
+      "Release factors recognize stop codons and terminate translation"
+    ]
+  }
+}
