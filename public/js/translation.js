@@ -1,20 +1,30 @@
 /**
- * Basic Translation Engine - First working version
+ * Translation Animation Engine - Original Version
+ * Creates the polished visualization with mRNA nucleotides, ribosome, and protein chain
  */
 class TranslationEngine {
     constructor(canvasId) {
         this.canvasId = canvasId;
         this.codonTable = {};
+        this.aminoAcidProperties = {};
+        this.svg = null;
         this.isAnimating = false;
         this.isPaused = false;
         this.speed = 1200;
         this.educationalCallback = null;
-        this.canvas = null;
-        this.ctx = null;
+        
+        // Animation state
+        this.mrnaSequence = '';
+        this.proteinChain = [];
+        this.currentCodonIndex = 0;
+        this.stepMode = false;
+        this.waitingForStep = false;
     }
 
     async initialize(codonTable, aminoAcidProperties) {
         this.codonTable = codonTable;
+        this.aminoAcidProperties = aminoAcidProperties;
+        
         console.log('Translation engine initialized');
         this.setupCanvas();
         return Promise.resolve();
@@ -29,17 +39,15 @@ class TranslationEngine {
         
         container.innerHTML = '';
         
-        // Create canvas element
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = 800;
-        this.canvas.height = 400;
-        this.canvas.style.border = '1px solid #ddd';
-        this.canvas.style.borderRadius = '8px';
-        this.canvas.style.background = '#fafafa';
-        this.canvas.style.width = '100%';
+        // Create SVG with proper dimensions and styling
+        this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.svg.setAttribute('width', '100%');
+        this.svg.setAttribute('height', '600');
+        this.svg.setAttribute('viewBox', '0 0 1000 600');
+        this.svg.style.background = '#f8f9fa';
+        this.svg.style.borderRadius = '8px';
         
-        this.ctx = this.canvas.getContext('2d');
-        container.appendChild(this.canvas);
+        container.appendChild(this.svg);
     }
 
     setEducationalCallback(callback) {
@@ -50,32 +58,110 @@ class TranslationEngine {
         if (this.isAnimating) return;
 
         this.mrnaSequence = mrnaSequence.toUpperCase();
+        this.stepMode = stepMode;
         this.isAnimating = true;
         this.isPaused = false;
+        this.currentCodonIndex = 0;
+        this.proteinChain = [];
+        this.waitingForStep = false;
         
         console.log(`Starting translation: ${mrnaSequence}`);
         
         if (this.educationalCallback) {
             this.educationalCallback('translation:started', {
-                sequence: this.mrnaSequence
+                sequence: this.mrnaSequence,
+                startPosition: 0
             });
         }
 
-        await this.runTranslation();
+        this.setupVisualization();
+        await this.runAnimation();
     }
 
-    async runTranslation() {
-        this.clearCanvas();
+    setupVisualization() {
+        this.svg.innerHTML = '';
         
-        // Draw title
-        this.ctx.font = '18px Arial';
-        this.ctx.fillStyle = '#333';
-        this.ctx.fillText('Translation: mRNA → Protein', 20, 30);
+        // Title
+        this.addText(50, 40, 'Translation: mRNA → Protein', 'font-family: Arial; font-size: 24px; font-weight: bold; fill: #2c3e50;');
         
-        // Draw mRNA sequence
-        this.drawMRNA();
+        // Draw mRNA sequence as individual nucleotides in a line
+        const startX = 50;
+        const startY = 120;
         
-        // Process codons
+        for (let i = 0; i < this.mrnaSequence.length; i++) {
+            const x = startX + i * 35;
+            const nucleotide = this.mrnaSequence[i];
+            
+            // Create nucleotide box
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x - 15);
+            rect.setAttribute('y', startY - 15);
+            rect.setAttribute('width', 30);
+            rect.setAttribute('height', 30);
+            rect.setAttribute('rx', 6);
+            rect.setAttribute('fill', this.getNucleotideColor(nucleotide));
+            rect.setAttribute('stroke', '#333');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('class', `nucleotide nucleotide-${i}`);
+            this.svg.appendChild(rect);
+            
+            // Add nucleotide letter
+            this.addText(x, startY + 5, nucleotide, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle;');
+        }
+        
+        // Draw ribosome (large brown ovals)
+        this.drawRibosome(200, 300);
+        
+        // Add labels
+        this.addText(50, 100, 'mRNA:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        this.addText(50, 450, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+    }
+
+    getNucleotideColor(nucleotide) {
+        const colors = {
+            'A': '#E57373',  // Red
+            'U': '#64B5F6',  // Blue  
+            'G': '#81C784',  // Green
+            'C': '#FFB74D'   // Orange
+        };
+        return colors[nucleotide] || '#999';
+    }
+
+    drawRibosome(x, y) {
+        // Remove old ribosome
+        const oldRibosome = this.svg.querySelector('#ribosome-group');
+        if (oldRibosome) oldRibosome.remove();
+        
+        const ribosomeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        ribosomeGroup.setAttribute('id', 'ribosome-group');
+        
+        // Large subunit (upper oval)
+        const largeSubunit = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        largeSubunit.setAttribute('cx', x);
+        largeSubunit.setAttribute('cy', y - 40);
+        largeSubunit.setAttribute('rx', 80);
+        largeSubunit.setAttribute('ry', 45);
+        largeSubunit.setAttribute('fill', '#8D6E63');
+        largeSubunit.setAttribute('stroke', '#5D4037');
+        largeSubunit.setAttribute('stroke-width', '3');
+        
+        // Small subunit (lower oval)
+        const smallSubunit = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        smallSubunit.setAttribute('cx', x);
+        smallSubunit.setAttribute('cy', y + 40);
+        smallSubunit.setAttribute('rx', 70);
+        smallSubunit.setAttribute('ry', 35);
+        smallSubunit.setAttribute('fill', '#6D4C41');
+        smallSubunit.setAttribute('stroke', '#4E342E');
+        smallSubunit.setAttribute('stroke-width', '3');
+        
+        ribosomeGroup.appendChild(largeSubunit);
+        ribosomeGroup.appendChild(smallSubunit);
+        this.svg.appendChild(ribosomeGroup);
+    }
+
+    async runAnimation() {
+        // Parse mRNA into codons
         const codons = [];
         for (let i = 0; i < this.mrnaSequence.length; i += 3) {
             const codon = this.mrnaSequence.substr(i, 3);
@@ -84,167 +170,171 @@ class TranslationEngine {
             }
         }
         
-        let proteinChain = [];
-        let ribosomeX = 50;
-        
-        for (let i = 0; i < codons.length; i++) {
+        for (let codonIndex = 0; codonIndex < codons.length; codonIndex++) {
             if (!this.isAnimating) break;
             
+            // Wait for pause/resume
             while (this.isPaused && this.isAnimating) {
                 await this.sleep(100);
             }
             
-            const codon = codons[i];
+            const codon = codons[codonIndex];
             const aminoAcid = this.codonTable[codon];
             
             if (!aminoAcid) continue;
+            
+            // Highlight current codon
+            this.highlightCodon(codonIndex);
+            
+            // Move ribosome to current codon
+            await this.moveRibosomeToCodon(codonIndex);
             
             if (aminoAcid === 'Stop') {
                 if (this.educationalCallback) {
                     this.educationalCallback('stop:encountered', {
                         stopCodon: codon,
-                        proteinLength: proteinChain.length
+                        proteinLength: this.proteinChain.length
                     });
                 }
                 break;
             }
             
-            // Move ribosome
-            ribosomeX = 50 + (i * 3 + 1.5) * 25;
-            this.drawRibosome(ribosomeX, 150);
-            
-            // Add amino acid
-            proteinChain.push(aminoAcid);
-            this.drawProteinChain(proteinChain);
+            // Add amino acid to protein chain
+            this.addAminoAcidToProtein(aminoAcid, this.proteinChain.length);
+            this.proteinChain.push(aminoAcid);
             
             if (this.educationalCallback) {
                 this.educationalCallback('codon:translated', {
                     codon: codon,
                     aminoAcid: aminoAcid,
-                    proteinLength: proteinChain.length
+                    proteinLength: this.proteinChain.length
                 });
             }
             
-            await this.sleep(this.speed);
+            this.currentCodonIndex = codonIndex + 1;
+            
+            if (this.stepMode) {
+                this.waitingForStep = true;
+                await this.waitForNextStep();
+            } else {
+                await this.sleep(this.speed);
+            }
         }
         
         this.isAnimating = false;
-        
-        // Show completion
-        this.ctx.font = '14px Arial';
-        this.ctx.fillStyle = '#666';
-        this.ctx.fillText(`Translation complete! Protein has ${proteinChain.length} amino acids`, 20, 60);
+        this.showCompletionMessage();
         
         if (this.educationalCallback) {
             this.educationalCallback('translation:complete', {
-                sequence: proteinChain.join('-')
+                sequence: this.proteinChain.join('-')
             });
         }
     }
 
-    drawMRNA() {
-        const y = 100;
+    highlightCodon(codonIndex) {
+        // Remove previous highlights
+        const oldHighlights = this.svg.querySelectorAll('.codon-highlight');
+        oldHighlights.forEach(h => h.remove());
         
-        for (let i = 0; i < this.mrnaSequence.length; i++) {
-            const x = 50 + i * 25;
-            const nucleotide = this.mrnaSequence[i];
+        // Highlight the 3 nucleotides of current codon
+        for (let i = 0; i < 3; i++) {
+            const nucleotideIndex = codonIndex * 3 + i;
+            if (nucleotideIndex >= this.mrnaSequence.length) continue;
             
-            // Draw nucleotide box
-            this.ctx.fillStyle = this.getNucleotideColor(nucleotide);
-            this.ctx.fillRect(x - 10, y - 12, 20, 24);
+            const x = 50 + nucleotideIndex * 35;
+            const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            highlight.setAttribute('x', x - 18);
+            highlight.setAttribute('y', 120 - 18);
+            highlight.setAttribute('width', 36);
+            highlight.setAttribute('height', 36);
+            highlight.setAttribute('rx', 8);
+            highlight.setAttribute('fill', 'none');
+            highlight.setAttribute('stroke', '#FFD700');
+            highlight.setAttribute('stroke-width', '4');
+            highlight.setAttribute('class', 'codon-highlight');
+            highlight.style.filter = 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))';
             
-            // Draw border
-            this.ctx.strokeStyle = '#333';
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(x - 10, y - 12, 20, 24);
-            
-            // Draw letter
-            this.ctx.font = '12px Arial';
-            this.ctx.fillStyle = 'white';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(nucleotide, x, y + 4);
+            this.svg.appendChild(highlight);
         }
     }
 
-    getNucleotideColor(nucleotide) {
-        const colors = {
-            'A': '#E57373',
-            'U': '#4FC3F7', 
-            'G': '#81C784',
-            'C': '#FFB74D'
-        };
-        return colors[nucleotide] || '#999';
-    }
-
-    drawRibosome(x, y) {
-        // Clear old ribosome area
-        this.ctx.clearRect(0, 120, 800, 80);
+    async moveRibosomeToCodon(codonIndex) {
+        // Calculate target position (center the ribosome over the codon)
+        const targetX = 50 + (codonIndex * 3 + 1.5) * 35;
         
-        // Redraw mRNA in that area
-        this.drawMRNA();
+        // Animate movement
+        const currentX = 200; // Starting position
+        const steps = 20;
+        const stepSize = (targetX - currentX) / steps;
         
-        // Large subunit
-        this.ctx.fillStyle = '#8D6E63';
-        this.ctx.beginPath();
-        this.ctx.ellipse(x, y - 20, 50, 30, 0, 0, 2 * Math.PI);
-        this.ctx.fill();
-        this.ctx.strokeStyle = '#5D4037';
-        this.ctx.lineWidth = 2;
-        this.ctx.stroke();
-        
-        // Small subunit
-        this.ctx.fillStyle = '#6D4C41';
-        this.ctx.beginPath();
-        this.ctx.ellipse(x, y + 20, 40, 25, 0, 0, 2 * Math.PI);
-        this.ctx.fill();
-        this.ctx.strokeStyle = '#3E2723';
-        this.ctx.lineWidth = 2;
-        this.ctx.stroke();
-    }
-
-    drawProteinChain(proteinChain) {
-        const y = 280;
-        
-        // Clear protein area
-        this.ctx.clearRect(0, 260, 800, 60);
-        
-        for (let i = 0; i < proteinChain.length; i++) {
-            const x = 50 + i * 40;
-            const aminoAcid = proteinChain[i];
+        for (let i = 0; i < steps; i++) {
+            if (!this.isAnimating) break;
             
-            // Draw connection line
-            if (i > 0) {
-                const prevX = 50 + (i - 1) * 40;
-                this.ctx.strokeStyle = '#795548';
-                this.ctx.lineWidth = 4;
-                this.ctx.beginPath();
-                this.ctx.moveTo(prevX + 18, y);
-                this.ctx.lineTo(x - 18, y);
-                this.ctx.stroke();
-            }
-            
-            // Draw amino acid circle
-            this.ctx.fillStyle = this.getAminoAcidColor(aminoAcid);
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, 18, 0, 2 * Math.PI);
-            this.ctx.fill();
-            this.ctx.strokeStyle = '#333';
-            this.ctx.lineWidth = 2;
-            this.ctx.stroke();
-            
-            // Draw abbreviation
-            this.ctx.font = '10px Arial';
-            this.ctx.fillStyle = 'white';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(this.getAminoAcidAbbr(aminoAcid), x, y + 3);
+            const newX = currentX + stepSize * (i + 1);
+            this.drawRibosome(newX, 300);
+            await this.sleep(50);
         }
+    }
+
+    addAminoAcidToProtein(aminoAcid, index) {
+        const proteinY = 470;
+        const x = 150 + index * 50;
+        
+        // Create amino acid group
+        const aminoGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        aminoGroup.setAttribute('class', 'amino-acid');
+        
+        // Amino acid circle
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', proteinY);
+        circle.setAttribute('r', 22);
+        circle.setAttribute('fill', this.getAminoAcidColor(aminoAcid));
+        circle.setAttribute('stroke', '#333');
+        circle.setAttribute('stroke-width', '3');
+        circle.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+        
+        // Amino acid label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', proteinY + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-family', 'Arial');
+        text.setAttribute('font-size', '12');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('fill', 'white');
+        text.textContent = this.getAminoAcidAbbr(aminoAcid);
+        
+        aminoGroup.appendChild(circle);
+        aminoGroup.appendChild(text);
+        
+        // Add connecting line to previous amino acid
+        if (index > 0) {
+            const prevX = 150 + (index - 1) * 50;
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', prevX + 22);
+            line.setAttribute('y1', proteinY);
+            line.setAttribute('x2', x - 22);
+            line.setAttribute('y2', proteinY);
+            line.setAttribute('stroke', '#8D6E63');
+            line.setAttribute('stroke-width', '6');
+            line.setAttribute('stroke-linecap', 'round');
+            
+            this.svg.insertBefore(line, aminoGroup);
+        }
+        
+        this.svg.appendChild(aminoGroup);
     }
 
     getAminoAcidColor(aminoAcid) {
         const colors = {
             'Methionine': '#4CAF50', 'Phenylalanine': '#FF9800', 'Leucine': '#2196F3',
             'Serine': '#9C27B0', 'Tyrosine': '#FF5722', 'Cysteine': '#607D8B',
-            'Lysine': '#26A69A', 'Arginine': '#3F51B5', 'Isoleucine': '#8BC34A'
+            'Tryptophan': '#E91E63', 'Proline': '#795548', 'Histidine': '#009688',
+            'Glutamine': '#FFC107', 'Arginine': '#3F51B5', 'Isoleucine': '#8BC34A',
+            'Threonine': '#FF7043', 'Asparagine': '#BA68C8', 'Lysine': '#26A69A',
+            'Valine': '#FFA726', 'Alanine': '#66BB6A', 'Aspartic Acid': '#EF5350',
+            'Glutamic Acid': '#AB47BC', 'Glycine': '#42A5F5'
         };
         return colors[aminoAcid] || '#9E9E9E';
     }
@@ -253,13 +343,66 @@ class TranslationEngine {
         const abbrs = {
             'Methionine': 'MET', 'Phenylalanine': 'PHE', 'Leucine': 'LEU',
             'Serine': 'SER', 'Tyrosine': 'TYR', 'Cysteine': 'CYS',
-            'Lysine': 'LYS', 'Arginine': 'ARG', 'Isoleucine': 'ILE'
+            'Tryptophan': 'TRP', 'Proline': 'PRO', 'Histidine': 'HIS',
+            'Glutamine': 'GLN', 'Arginine': 'ARG', 'Isoleucine': 'ILE',
+            'Threonine': 'THR', 'Asparagine': 'ASN', 'Lysine': 'LYS',
+            'Valine': 'VAL', 'Alanine': 'ALA', 'Aspartic Acid': 'ASP',
+            'Glutamic Acid': 'GLU', 'Glycine': 'GLY'
         };
         return abbrs[aminoAcid] || 'UNK';
     }
 
-    clearCanvas() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    showCompletionMessage() {
+        // Add completion text
+        this.addText(50, 550, `Translation complete! Protein has ${this.proteinChain.length} amino acids`, 
+            'font-family: Arial; font-size: 16px; fill: #27ae60; font-weight: bold;');
+        
+        // Add completion summary box
+        const summaryRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        summaryRect.setAttribute('x', 700);
+        summaryRect.setAttribute('y', 200);
+        summaryRect.setAttribute('width', 280);
+        summaryRect.setAttribute('height', 180);
+        summaryRect.setAttribute('rx', 12);
+        summaryRect.setAttribute('fill', 'rgba(200, 255, 200, 0.9)');
+        summaryRect.setAttribute('stroke', '#4CAF50');
+        summaryRect.setAttribute('stroke-width', '2');
+        this.svg.appendChild(summaryRect);
+        
+        // Add completion details
+        this.addText(720, 230, 'Translation Complete!', 'font-family: Arial; font-size: 18px; font-weight: bold; fill: #2E7D32;');
+        this.addText(720, 260, `Protein length: ${this.proteinChain.length} amino acids`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(720, 280, `mRNA length: ${this.mrnaSequence.length} nucleotides`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(720, 300, `Codons translated: ${this.proteinChain.length}`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+    }
+
+    addText(x, y, text, style) {
+        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textElement.setAttribute('x', x);
+        textElement.setAttribute('y', y);
+        textElement.setAttribute('style', style);
+        textElement.textContent = text;
+        this.svg.appendChild(textElement);
+        return textElement;
+    }
+
+    async waitForNextStep() {
+        return new Promise((resolve) => {
+            const checkStep = () => {
+                if (!this.waitingForStep || !this.isAnimating) {
+                    resolve();
+                } else {
+                    setTimeout(checkStep, 100);
+                }
+            };
+            checkStep();
+        });
+    }
+
+    step() {
+        if (this.waitingForStep) {
+            this.waitingForStep = false;
+        }
     }
 
     pause() {
@@ -273,8 +416,12 @@ class TranslationEngine {
     reset() {
         this.isAnimating = false;
         this.isPaused = false;
-        if (this.ctx) {
-            this.clearCanvas();
+        this.currentCodonIndex = 0;
+        this.proteinChain = [];
+        this.waitingForStep = false;
+        
+        if (this.svg) {
+            this.svg.innerHTML = '';
         }
     }
 

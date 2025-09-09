@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central Dogma Interactive</title>
+    <title>Translation Animation Test</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,7 +11,7 @@
             background-color: #f5f5f5;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             padding: 20px;
@@ -42,7 +42,9 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        #simulation-canvas {
+        #translation-canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
             margin-top: 20px;
         }
         .info {
@@ -55,19 +57,25 @@
 </head>
 <body>
     <div class="container">
-        <h1>Central Dogma Interactive</h1>
-        <p>Enter an mRNA sequence to see the translation process.</p>
+        <h1>Enhanced Translation Animation Test</h1>
+        <p>This page tests the enhanced translation animation with detailed ribosome mechanics, tRNA visualization, and educational features.</p>
         
         <div class="controls">
             <label>mRNA Sequence:</label>
             <input type="text" id="mrna-input" value="AUGAAACGCAUUUAA" style="width: 200px;">
             <br><br>
             
-            <label>Animation Speed:</label>
+            <label>Animation Speed (ms per codon):</label>
             <select id="speed-select">
                 <option value="500">Fast (500ms)</option>
                 <option value="1200" selected>Normal (1200ms)</option>
                 <option value="2000">Slow (2000ms)</option>
+            </select>
+            
+            <label>Mode:</label>
+            <select id="mode-select">
+                <option value="continuous">Continuous</option>
+                <option value="step">Step-by-step</option>
             </select>
             <br><br>
             
@@ -77,34 +85,83 @@
             <button id="reset-btn">Reset</button>
         </div>
         
-        <div id="simulation-canvas"></div>
+        <div id="translation-canvas"></div>
         
         <div class="info">
-            <p>This animation shows how mRNA is translated into protein by the ribosome.</p>
+            <h3>Features being tested:</h3>
+            <ul>
+                <li>Detailed ribosome visualization with A and P sites</li>
+                <li>tRNA entry/exit animations with anticodons</li>
+                <li>Growing protein chain with amino acid colors</li>
+                <li>Interactive tooltips on hover</li>
+                <li>Step-by-step progress indicator</li>
+                <li>Educational event dispatching</li>
+                <li>Completion summary with properly formatted statistics</li>
+                <li>Optimized layout with proper element sizing</li>
+            </ul>
         </div>
     </div>
 
+    <!-- Include required scripts -->
     <script src="../public/js/translation.js"></script>
+
     <script>
+        // Load genetic data
+        let geneticData = {};
+        let educationalData = {};
         let translationEngine;
-        let geneticData = {
-            "AUG": "Methionine",
-            "AAA": "Lysine", 
-            "CGC": "Arginine",
-            "AUU": "Isoleucine",
-            "UAA": "Stop",
-            "UUU": "Phenylalanine"
-        };
+
+        async function loadData() {
+            try {
+                // Load codon table
+                const codonResponse = await fetch('../data/codon_table.json');
+                geneticData = await codonResponse.json();
+                
+                // Load educational content
+                const educationalResponse = await fetch('../data/educational_content.json');
+                educationalData = await educationalResponse.json();
+                
+                console.log('Data loaded:', { geneticData, educationalData });
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Fallback data
+                geneticData = {
+                    codon_table: {
+                        "AUG": "Methionine",
+                        "AAA": "Lysine", 
+                        "CGC": "Arginine",
+                        "AUU": "Isoleucine",
+                        "UAA": "Stop",
+                        "UUU": "Phenylalanine"
+                    },
+                    amino_acid_properties: {
+                        "Methionine": { type: "nonpolar", property: "Start codon" },
+                        "Lysine": { type: "basic", property: "Positively charged" },
+                        "Arginine": { type: "basic", property: "Positively charged" },
+                        "Isoleucine": { type: "nonpolar", property: "Branched chain" },
+                        "Phenylalanine": { type: "aromatic", property: "Large ring structure" }
+                    }
+                };
+            }
+        }
 
         async function initialize() {
-            translationEngine = new TranslationEngine('simulation-canvas');
-            await translationEngine.initialize(geneticData, {});
+            await loadData();
+            
+            // Initialize translation engine
+            translationEngine = new TranslationEngine('translation-canvas');
+            await translationEngine.initialize(
+                geneticData.codon_table || geneticData,
+                geneticData.amino_acid_properties || {}
+            );
 
+            // Set up educational callback
             translationEngine.setEducationalCallback((eventType, data) => {
                 console.log('Educational Event:', eventType, data);
-                showFeedback(eventType, data);
+                showEducationalFeedback(eventType, data);
             });
 
+            // Set up event listeners
             document.getElementById('start-btn').addEventListener('click', startTranslation);
             document.getElementById('pause-btn').addEventListener('click', () => translationEngine.pause());
             document.getElementById('resume-btn').addEventListener('click', () => translationEngine.resume());
@@ -114,20 +171,24 @@
                 translationEngine.setSpeed(parseInt(e.target.value));
             });
 
-            console.log('Central Dogma Interactive initialized!');
+            console.log('Translation animation test initialized!');
         }
 
         function startTranslation() {
             const mrnaSequence = document.getElementById('mrna-input').value.toUpperCase();
+            const mode = document.getElementById('mode-select').value;
+            const stepMode = mode === 'step';
+
             if (!mrnaSequence) {
                 alert('Please enter an mRNA sequence');
                 return;
             }
-            console.log('Starting translation:', mrnaSequence);
-            translationEngine.startTranslation(mrnaSequence);
+
+            console.log('Starting translation:', { mrnaSequence, stepMode });
+            translationEngine.startTranslation(mrnaSequence, stepMode);
         }
 
-        function showFeedback(eventType, data) {
+        function showEducationalFeedback(eventType, data) {
             const feedbackDiv = document.createElement('div');
             feedbackDiv.style.cssText = `
                 position: fixed;
@@ -138,19 +199,20 @@
                 padding: 12px;
                 border-radius: 6px;
                 max-width: 300px;
-                z-index: 1000;
+                z-index: 1002;
+                animation: slideInRight 0.3s ease;
             `;
             
             let message = '';
             switch(eventType) {
                 case 'translation:started':
-                    message = `Translation started for sequence: ${data.sequence.substring(0, 10)}...`;
+                    message = `Translation started at position ${data.startPosition}`;
                     break;
                 case 'codon:translated':
-                    message = `Codon ${data.codon} → ${data.aminoAcid}`;
+                    message = `Codon ${data.codon} → ${data.aminoAcid} (${data.proteinLength} AA total)`;
                     break;
                 case 'stop:encountered':
-                    message = `Stop codon encountered. Final protein: ${data.proteinLength} amino acids`;
+                    message = `Stop codon ${data.stopCodon} - Final protein: ${data.proteinLength} amino acids`;
                     break;
                 case 'translation:complete':
                     message = `Translation complete! Protein: ${data.sequence}`;
@@ -166,9 +228,27 @@
                 if (feedbackDiv.parentNode) {
                     feedbackDiv.parentNode.removeChild(feedbackDiv);
                 }
-            }, 3000);
+            }, 4000);
         }
 
+
+        // Add some CSS animations
+        const testStyles = document.createElement('style');
+        testStyles.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(testStyles);
+
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initialize);
     </script>
 </body>
