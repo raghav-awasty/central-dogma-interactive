@@ -239,21 +239,42 @@
 
         function showEducationalFeedback(eventType, data) {
             const feedbackDiv = document.createElement('div');
+            
+            // Set background color based on message type
+            let backgroundColor = '#28a745';  // Success green
+            if (eventType === 'sequence:warning') {
+                switch(data.type) {
+                    case 'error':
+                        backgroundColor = '#dc3545';  // Error red
+                        break;
+                    case 'warning':
+                        backgroundColor = '#ffc107';  // Warning yellow
+                        break;
+                    case 'info':
+                        backgroundColor = '#17a2b8';  // Info blue
+                        break;
+                }
+            }
+            
             feedbackDiv.style.cssText = `
                 position: fixed;
                 bottom: 20px;
                 right: 20px;
-                background: #28a745;
-                color: white;
+                background: ${backgroundColor};
+                color: ${backgroundColor === '#ffc107' ? '#000' : '#fff'};
                 padding: 12px;
                 border-radius: 6px;
-                max-width: 300px;
+                max-width: 350px;
                 z-index: 1002;
                 animation: slideInRight 0.3s ease;
+                border: 2px solid ${backgroundColor === '#ffc107' ? '#e0a800' : 'transparent'};
             `;
             
             let message = '';
             switch(eventType) {
+                case 'sequence:warning':
+                    message = data.message;
+                    break;
                 case 'translation:started':
                     message = `Translation started at position ${data.startPosition}`;
                     break;

@@ -19,6 +19,10 @@ class TranslationEngine {
         this.currentCodonIndex = 0;
         this.stepMode = false;
         this.waitingForStep = false;
+        
+        // Tooltip system
+        this.tooltip = null;
+        this.setupTooltipSystem();
     }
 
     async initialize(codonTable, aminoAcidProperties) {
@@ -55,10 +59,231 @@ class TranslationEngine {
         this.educationalCallback = callback;
     }
 
+    validateSequenceLength(sequence) {
+        const maxNucleotides = 45;  // Maximum nucleotides that can fit comfortably (15 codons)
+        const recommendedMax = 30;   // Recommended maximum for best visualization (10 codons)
+        
+        if (sequence.length > maxNucleotides) {
+            return {
+                isValid: false,
+                message: `Sequence too long! Maximum ${maxNucleotides} nucleotides allowed. Your sequence: ${sequence.length} nucleotides.`,
+                type: 'error'
+            };
+        }
+        
+        if (sequence.length > recommendedMax) {
+            return {
+                isValid: true,
+                message: `Long sequence detected (${sequence.length} nucleotides). Animation may be cramped. Recommended: ${recommendedMax} nucleotides or less.`,
+                type: 'warning'
+            };
+        }
+        
+        if (sequence.length % 3 !== 0) {
+            return {
+                isValid: true,
+                message: `Sequence length (${sequence.length}) is not divisible by 3. Last incomplete codon will be ignored.`,
+                type: 'info'
+            };
+        }
+        
+        return { isValid: true, type: 'success' };
+    }
+
+    setupTooltipSystem() {
+        // Create tooltip element
+        this.tooltip = document.createElement('div');
+        this.tooltip.id = 'bio-tooltip';
+        this.tooltip.style.cssText = `
+            position: fixed;
+            background: rgba(44, 62, 80, 0.85);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            max-width: 280px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            border: 1px solid rgba(52, 152, 219, 0.6);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            backdrop-filter: blur(2px);
+        `;
+        document.body.appendChild(this.tooltip);
+    }
+
+    showTooltip(content, event) {
+        if (!this.tooltip) return;
+        
+        this.tooltip.innerHTML = content;
+        
+        // Use mouse position for more reliable positioning
+        const x = event.clientX || event.pageX || 0;
+        const y = event.clientY || event.pageY || 0;
+        
+        // Position tooltip with some offset to avoid covering the element
+        this.tooltip.style.left = (x + 15) + 'px';
+        this.tooltip.style.top = (y - 50) + 'px';
+        this.tooltip.style.opacity = '1';
+        this.tooltip.style.transform = 'translateY(0)';
+    }
+
+    hideTooltip() {
+        if (!this.tooltip) return;
+        
+        this.tooltip.style.opacity = '0';
+        this.tooltip.style.transform = 'translateY(-10px)';
+    }
+
+    getNucleotideInfo(nucleotide, position) {
+        const info = {
+            'A': {
+                name: 'Adenine',
+                type: 'Purine',
+                pairs: 'Thymine (T) in DNA, Uracil (U) in RNA',
+                structure: 'Double-ring structure'
+            },
+            'U': {
+                name: 'Uracil',
+                type: 'Pyrimidine',
+                pairs: 'Adenine (A)',
+                structure: 'Single-ring structure',
+                note: 'Found in RNA instead of Thymine'
+            },
+            'G': {
+                name: 'Guanine',
+                type: 'Purine',
+                pairs: 'Cytosine (C)',
+                structure: 'Double-ring structure'
+            },
+            'C': {
+                name: 'Cytosine',
+                type: 'Pyrimidine',
+                pairs: 'Guanine (G)',
+                structure: 'Single-ring structure'
+            }
+        }[nucleotide];
+
+        const codonIndex = Math.floor(position / 3);
+        const positionInCodon = (position % 3) + 1;
+        
+        return `
+            <strong>${info.name} (${nucleotide})</strong><br>
+            <em>${info.type} base</em><br>
+            Position: ${position + 1} (Codon ${codonIndex + 1}, Position ${positionInCodon})<br>
+            Pairs with: ${info.pairs}<br>
+            Structure: ${info.structure}
+            ${info.note ? '<br><small>' + info.note + '</small>' : ''}
+        `;
+    }
+
+    getRibosomeInfo() {
+        return `
+            <strong>Ribosome</strong><br>
+            <em>Protein synthesis machinery</em><br>
+            • Two subunits: Large (60S) and Small (40S)<br>
+            • Reads mRNA codons 5' to 3' direction<br>
+            • Catalyzes peptide bond formation<br>
+            • Contains rRNA and ribosomal proteins<br>
+            • Moves along mRNA during translation
+        `;
+    }
+
+    getAminoAcidInfo(aminoAcid) {
+        const info = {
+            'Methionine': { abbr: 'Met', type: 'Nonpolar', property: 'Start amino acid, contains sulfur', essential: true },
+            'Alanine': { abbr: 'Ala', type: 'Nonpolar', property: 'Simplest amino acid after glycine', essential: false },
+            'Glutamine': { abbr: 'Gln', type: 'Polar', property: 'Amide group, important for protein folding', essential: false },
+            'Phenylalanine': { abbr: 'Phe', type: 'Aromatic', property: 'Large benzene ring, hydrophobic', essential: true },
+            'Leucine': { abbr: 'Leu', type: 'Nonpolar', property: 'Branched chain, very hydrophobic', essential: true },
+            'Isoleucine': { abbr: 'Ile', type: 'Nonpolar', property: 'Branched chain, isomer of leucine', essential: true },
+            'Valine': { abbr: 'Val', type: 'Nonpolar', property: 'Branched chain, smaller than Leu/Ile', essential: true },
+            'Serine': { abbr: 'Ser', type: 'Polar', property: 'Hydroxyl group, can be phosphorylated', essential: false },
+            'Proline': { abbr: 'Pro', type: 'Nonpolar', property: 'Cyclic structure, creates kinks in proteins', essential: false },
+            'Threonine': { abbr: 'Thr', type: 'Polar', property: 'Hydroxyl group, can be phosphorylated', essential: true },
+            'Tyrosine': { abbr: 'Tyr', type: 'Aromatic', property: 'Phenol group, can be phosphorylated', essential: false },
+            'Histidine': { abbr: 'His', type: 'Basic', property: 'Imidazole ring, pH buffering', essential: true },
+            'Asparagine': { abbr: 'Asn', type: 'Polar', property: 'Amide group, glycosylation sites', essential: false },
+            'Lysine': { abbr: 'Lys', type: 'Basic', property: 'Positively charged, histone modification', essential: true },
+            'Aspartic acid': { abbr: 'Asp', type: 'Acidic', property: 'Negatively charged, enzyme active sites', essential: false },
+            'Glutamic acid': { abbr: 'Glu', type: 'Acidic', property: 'Negatively charged, neurotransmitter precursor', essential: false },
+            'Cysteine': { abbr: 'Cys', type: 'Polar', property: 'Forms disulfide bonds, protein structure', essential: false },
+            'Tryptophan': { abbr: 'Trp', type: 'Aromatic', property: 'Largest amino acid, serotonin precursor', essential: true },
+            'Arginine': { abbr: 'Arg', type: 'Basic', property: 'Guanidinium group, very basic', essential: false },
+            'Glycine': { abbr: 'Gly', type: 'Nonpolar', property: 'Smallest amino acid, flexible backbone', essential: false }
+        }[aminoAcid] || { abbr: '?', type: 'Unknown', property: 'Information not available', essential: false };
+
+        return `
+            <strong>${aminoAcid} (${info.abbr})</strong><br>
+            <em>${info.type} amino acid</em><br>
+            Essential: ${info.essential ? 'Yes' : 'No'}<br>
+            Property: ${info.property}
+        `;
+    }
+
+    getCellMembraneInfo() {
+        return `
+            <strong>Cell Membrane</strong><br>
+            <em>Phospholipid bilayer boundary</em><br>
+            • Separates cell interior from environment<br>
+            • Translation occurs in the cytoplasm inside<br>
+            • Semi-permeable barrier<br>
+            • Contains embedded proteins and channels<br>
+            • Maintains cellular homeostasis
+        `;
+    }
+
+    calculateLayout(sequenceLength) {
+        const svgWidth = 1000;
+        const availableWidth = svgWidth - 100; // Leave 50px margin on each side
+        const maxNucleotideSpacing = 35;
+        const minNucleotideSpacing = 15;
+        const maxNucleotideSize = 30;
+        const minNucleotideSize = 18;
+        
+        // Calculate optimal spacing based on sequence length
+        let nucleotideSpacing = Math.max(
+            minNucleotideSpacing,
+            Math.min(maxNucleotideSpacing, availableWidth / sequenceLength)
+        );
+        
+        // Calculate nucleotide size based on spacing
+        let nucleotideSize = Math.max(
+            minNucleotideSize,
+            Math.min(maxNucleotideSize, nucleotideSpacing - 5)
+        );
+        
+        // Calculate starting X position to center the sequence
+        const totalSequenceWidth = (sequenceLength - 1) * nucleotideSpacing;
+        const startX = (svgWidth - totalSequenceWidth) / 2;
+        
+        return {
+            startX: Math.max(50, startX),
+            mrnaY: 120,
+            nucleotideSpacing: nucleotideSpacing,
+            nucleotideSize: nucleotideSize,
+            ribosomeY: 300,
+            proteinY: 450
+        };
+    }
+
     async startTranslation(mrnaSequence, stepMode = false) {
         if (this.isAnimating) return;
 
         this.mrnaSequence = mrnaSequence.toUpperCase();
+        
+        // Validate sequence length and warn user
+        const validationResult = this.validateSequenceLength(this.mrnaSequence);
+        if (!validationResult.isValid) {
+            if (this.educationalCallback) {
+                this.educationalCallback('sequence:warning', validationResult);
+            }
+            return;
+        }
+        
         this.stepMode = stepMode;
         this.isAnimating = true;
         this.isPaused = false;
@@ -82,6 +307,9 @@ class TranslationEngine {
     setupVisualization() {
         this.svg.innerHTML = '';
         
+        // Calculate dynamic layout based on sequence length
+        this.layout = this.calculateLayout(this.mrnaSequence.length);
+        
         // Title
         this.addText(50, 40, 'Translation: mRNA → Protein', 'font-family: Arial; font-size: 24px; font-weight: bold; fill: #2c3e50;');
         
@@ -89,36 +317,58 @@ class TranslationEngine {
         this.drawCellMembrane();
         
         // Draw mRNA sequence as individual nucleotides in a line
-        const startX = 50;
-        const startY = 120;
+        const startX = this.layout.startX;
+        const startY = this.layout.mrnaY;
+        const nucleotideSpacing = this.layout.nucleotideSpacing;
         
         for (let i = 0; i < this.mrnaSequence.length; i++) {
-            const x = startX + i * 35;
+            const x = startX + i * nucleotideSpacing;
             const nucleotide = this.mrnaSequence[i];
             
-            // Create nucleotide box
+            // Create nucleotide box with dynamic sizing and hover functionality
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            rect.setAttribute('x', x - 15);
-            rect.setAttribute('y', startY - 15);
-            rect.setAttribute('width', 30);
-            rect.setAttribute('height', 30);
+            rect.setAttribute('x', x - this.layout.nucleotideSize/2);
+            rect.setAttribute('y', startY - this.layout.nucleotideSize/2);
+            rect.setAttribute('width', this.layout.nucleotideSize);
+            rect.setAttribute('height', this.layout.nucleotideSize);
             rect.setAttribute('rx', 6);
             rect.setAttribute('fill', this.getNucleotideColor(nucleotide));
             rect.setAttribute('stroke', '#333');
             rect.setAttribute('stroke-width', '2');
             rect.setAttribute('class', `nucleotide nucleotide-${i}`);
+            rect.style.cursor = 'pointer';
+            
+            // Add hover events for educational tooltips (static, no scaling)
+            rect.addEventListener('mouseenter', (e) => {
+                clearTimeout(rect.hoverTimeout);
+                rect.hoverTimeout = setTimeout(() => {
+                    this.showTooltip(this.getNucleotideInfo(nucleotide, i), e);
+                }, 50);
+            });
+            
+            rect.addEventListener('mouseleave', () => {
+                clearTimeout(rect.hoverTimeout);
+                this.hideTooltip();
+            });
+            
+            rect.addEventListener('mousemove', (e) => {
+                if (this.tooltip && this.tooltip.style.opacity === '1') {
+                    this.showTooltip(this.getNucleotideInfo(nucleotide, i), e);
+                }
+            });
+            
             this.svg.appendChild(rect);
             
             // Add nucleotide letter
             this.addText(x, startY + 5, nucleotide, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle;');
         }
         
-        // Draw ribosome (large brown ovals)
-        this.drawRibosome(200, 300);
+        // Draw ribosome at the start position
+        this.drawRibosome(startX, this.layout.ribosomeY);
         
         // Add labels
-        this.addText(50, 100, 'mRNA:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
-        this.addText(50, 450, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        this.addText(50, this.layout.mrnaY - 20, 'mRNA:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        this.addText(50, this.layout.proteinY, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
     }
 
     getNucleotideColor(nucleotide) {
@@ -138,6 +388,26 @@ class TranslationEngine {
         
         const ribosomeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         ribosomeGroup.setAttribute('id', 'ribosome-group');
+        ribosomeGroup.style.cursor = 'pointer';
+        
+        // Add hover events for ribosome (static, no scaling)
+        ribosomeGroup.addEventListener('mouseenter', (e) => {
+            clearTimeout(ribosomeGroup.hoverTimeout);
+            ribosomeGroup.hoverTimeout = setTimeout(() => {
+                this.showTooltip(this.getRibosomeInfo(), e);
+            }, 50);
+        });
+        
+        ribosomeGroup.addEventListener('mouseleave', () => {
+            clearTimeout(ribosomeGroup.hoverTimeout);
+            this.hideTooltip();
+        });
+        
+        ribosomeGroup.addEventListener('mousemove', (e) => {
+            if (this.tooltip && this.tooltip.style.opacity === '1') {
+                this.showTooltip(this.getRibosomeInfo(), e);
+            }
+        });
         
         // Large subunit (upper oval)
         const largeSubunit = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
@@ -297,17 +567,18 @@ class TranslationEngine {
         const oldHighlights = this.svg.querySelectorAll('.codon-highlight');
         oldHighlights.forEach(h => h.remove());
         
-        // Highlight the 3 nucleotides of current codon
+        // Highlight the 3 nucleotides of current codon using dynamic layout
         for (let i = 0; i < 3; i++) {
             const nucleotideIndex = codonIndex * 3 + i;
             if (nucleotideIndex >= this.mrnaSequence.length) continue;
             
-            const x = 50 + nucleotideIndex * 35;
+            const x = this.layout.startX + nucleotideIndex * this.layout.nucleotideSpacing;
             const highlight = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            highlight.setAttribute('x', x - 18);
-            highlight.setAttribute('y', 120 - 18);
-            highlight.setAttribute('width', 36);
-            highlight.setAttribute('height', 36);
+            const highlightPadding = Math.max(3, this.layout.nucleotideSize * 0.15);
+            highlight.setAttribute('x', x - this.layout.nucleotideSize/2 - highlightPadding);
+            highlight.setAttribute('y', this.layout.mrnaY - this.layout.nucleotideSize/2 - highlightPadding);
+            highlight.setAttribute('width', this.layout.nucleotideSize + 2 * highlightPadding);
+            highlight.setAttribute('height', this.layout.nucleotideSize + 2 * highlightPadding);
             highlight.setAttribute('rx', 8);
             highlight.setAttribute('fill', 'none');
             highlight.setAttribute('stroke', '#FFD700');
@@ -320,12 +591,12 @@ class TranslationEngine {
     }
 
     async moveRibosomeToCodon(codonIndex) {
-        // Calculate target position (center the ribosome over the codon)
-        const targetX = 50 + (codonIndex * 3 + 1.5) * 35;
+        // Calculate target position (center the ribosome over the codon) using dynamic layout
+        const targetX = this.layout.startX + (codonIndex * 3 + 1.5) * this.layout.nucleotideSpacing;
         
         // Get current ribosome position
         const ribosomeGroup = this.svg.querySelector('#ribosome-group');
-        let currentX = 200; // default starting position
+        let currentX = this.layout.startX; // default starting position
         
         if (ribosomeGroup) {
             const largeSubunit = ribosomeGroup.querySelector('ellipse');
@@ -343,22 +614,43 @@ class TranslationEngine {
                 if (!this.isAnimating) break;
                 
                 const newX = currentX + stepSize * (i + 1);
-                this.drawRibosome(newX, 300);
+                this.drawRibosome(newX, this.layout.ribosomeY);
                 await this.sleep(30);
             }
         }
         
         // Ensure final position is exact
-        this.drawRibosome(targetX, 300);
+        this.drawRibosome(targetX, this.layout.ribosomeY);
     }
 
     addAminoAcidToProtein(aminoAcid, index) {
-        const proteinY = 470;
-        const x = 150 + index * 50;
+        const proteinY = this.layout.proteinY + 20;
+        const proteinSpacing = Math.min(50, Math.max(30, this.layout.nucleotideSpacing * 1.5));
+        const x = this.layout.startX + index * proteinSpacing;
         
-        // Create amino acid group
+        // Create amino acid group with hover functionality
         const aminoGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         aminoGroup.setAttribute('class', 'amino-acid');
+        aminoGroup.style.cursor = 'pointer';
+        
+        // Add hover events for amino acid (static, no scaling)
+        aminoGroup.addEventListener('mouseenter', (e) => {
+            clearTimeout(aminoGroup.hoverTimeout);
+            aminoGroup.hoverTimeout = setTimeout(() => {
+                this.showTooltip(this.getAminoAcidInfo(aminoAcid), e);
+            }, 50);
+        });
+        
+        aminoGroup.addEventListener('mouseleave', () => {
+            clearTimeout(aminoGroup.hoverTimeout);
+            this.hideTooltip();
+        });
+        
+        aminoGroup.addEventListener('mousemove', (e) => {
+            if (this.tooltip && this.tooltip.style.opacity === '1') {
+                this.showTooltip(this.getAminoAcidInfo(aminoAcid), e);
+            }
+        });
         
         // Amino acid circle
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -386,7 +678,7 @@ class TranslationEngine {
         
         // Add connecting line to previous amino acid first (so it appears behind)
         if (index > 0) {
-            const prevX = 150 + (index - 1) * 50;
+            const prevX = this.layout.startX + (index - 1) * proteinSpacing;
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', prevX + 22);
             line.setAttribute('y1', proteinY);
