@@ -25,7 +25,8 @@ class TranslationEngine {
         this.codonTable = codonTable;
         this.aminoAcidProperties = aminoAcidProperties;
         
-        console.log('Translation engine initialized');
+        console.log('Translation engine initialized with codon table:', this.codonTable);
+        console.log('Available codons:', Object.keys(this.codonTable));
         this.setupCanvas();
         return Promise.resolve();
     }
@@ -170,8 +171,13 @@ class TranslationEngine {
             }
         }
         
+        console.log(`Processing ${codons.length} codons:`, codons);
+        
         for (let codonIndex = 0; codonIndex < codons.length; codonIndex++) {
-            if (!this.isAnimating) break;
+            if (!this.isAnimating) {
+                console.log('Animation stopped by user');
+                break;
+            }
             
             // Wait for pause/resume
             while (this.isPaused && this.isAnimating) {
@@ -179,49 +185,80 @@ class TranslationEngine {
             }
             
             const codon = codons[codonIndex];
-            const aminoAcid = this.codonTable[codon];
+            let aminoAcid = null;
             
-            if (!aminoAcid) continue;
+            // Handle both data structures - direct lookup and nested object
+            if (typeof this.codonTable[codon] === 'string') {
+                aminoAcid = this.codonTable[codon];
+            } else if (this.codonTable[codon] && this.codonTable[codon].amino_acid) {
+                aminoAcid = this.codonTable[codon].amino_acid;
+                // Handle STOP codons
+                if (aminoAcid === 'STOP') {
+                    aminoAcid = 'Stop';
+                }
+            }
             
-            // Highlight current codon
-            this.highlightCodon(codonIndex);
+            console.log(`Processing codon ${codonIndex + 1}/${codons.length}: ${codon} → ${aminoAcid}`);
             
-            // Move ribosome to current codon
-            await this.moveRibosomeToCodon(codonIndex);
+            if (!aminoAcid) {
+                console.warn(`Unknown codon: ${codon}`, 'Available:', Object.keys(this.codonTable));
+                continue;
+            }
             
-            if (aminoAcid === 'Stop') {
+            try {
+                console.log(`Step 1: Highlighting codon ${codonIndex}`);
+                // Highlight current codon
+                this.highlightCodon(codonIndex);
+                
+                console.log(`Step 2: Moving ribosome to codon ${codonIndex}`);
+                // Move ribosome to current codon
+                await this.moveRibosomeToCodon(codonIndex);
+                
+                if (aminoAcid === 'Stop') {
+                    console.log(`Stop codon encountered: ${codon}`);
+                    if (this.educationalCallback) {
+                        this.educationalCallback('stop:encountered', {
+                            stopCodon: codon,
+                            proteinLength: this.proteinChain.length
+                        });
+                    }
+                    break;
+                }
+                
+                console.log(`Step 3: Adding amino acid ${aminoAcid} to protein chain`);
+                // Add amino acid to protein chain
+                this.addAminoAcidToProtein(aminoAcid, this.proteinChain.length);
+                this.proteinChain.push(aminoAcid);
+                
                 if (this.educationalCallback) {
-                    this.educationalCallback('stop:encountered', {
-                        stopCodon: codon,
+                    this.educationalCallback('codon:translated', {
+                        codon: codon,
+                        aminoAcid: aminoAcid,
                         proteinLength: this.proteinChain.length
                     });
                 }
-                break;
-            }
-            
-            // Add amino acid to protein chain
-            this.addAminoAcidToProtein(aminoAcid, this.proteinChain.length);
-            this.proteinChain.push(aminoAcid);
-            
-            if (this.educationalCallback) {
-                this.educationalCallback('codon:translated', {
-                    codon: codon,
-                    aminoAcid: aminoAcid,
-                    proteinLength: this.proteinChain.length
-                });
-            }
-            
-            this.currentCodonIndex = codonIndex + 1;
-            
-            if (this.stepMode) {
-                this.waitingForStep = true;
-                await this.waitForNextStep();
-            } else {
-                await this.sleep(this.speed);
+                
+                this.currentCodonIndex = codonIndex + 1;
+                
+                console.log(`Step 4: Waiting for next iteration (stepMode: ${this.stepMode}, speed: ${this.speed}ms)`);
+                
+                if (this.stepMode) {
+                    this.waitingForStep = true;
+                    await this.waitForNextStep();
+                } else {
+                    await this.sleep(this.speed);
+                }
+                
+                console.log(`Completed processing codon ${codonIndex}, moving to next`);
+                
+            } catch (error) {
+                console.error(`Error processing codon ${codonIndex}:`, error);
+                // Continue with next codon
             }
         }
         
         this.isAnimating = false;
+        console.log('Animation complete');
         this.showCompletionMessage();
         
         if (this.educationalCallback) {
@@ -262,18 +299,33 @@ class TranslationEngine {
         // Calculate target position (center the ribosome over the codon)
         const targetX = 50 + (codonIndex * 3 + 1.5) * 35;
         
-        // Animate movement
-        const currentX = 200; // Starting position
-        const steps = 20;
-        const stepSize = (targetX - currentX) / steps;
+        // Get current ribosome position
+        const ribosomeGroup = this.svg.querySelector('#ribosome-group');
+        let currentX = 200; // default starting position
         
-        for (let i = 0; i < steps; i++) {
-            if (!this.isAnimating) break;
-            
-            const newX = currentX + stepSize * (i + 1);
-            this.drawRibosome(newX, 300);
-            await this.sleep(50);
+        if (ribosomeGroup) {
+            const largeSubunit = ribosomeGroup.querySelector('ellipse');
+            if (largeSubunit) {
+                currentX = parseFloat(largeSubunit.getAttribute('cx'));
+            }
         }
+        
+        // Animate movement only if we need to move
+        if (Math.abs(targetX - currentX) > 5) {
+            const steps = 15;
+            const stepSize = (targetX - currentX) / steps;
+            
+            for (let i = 0; i < steps; i++) {
+                if (!this.isAnimating) break;
+                
+                const newX = currentX + stepSize * (i + 1);
+                this.drawRibosome(newX, 300);
+                await this.sleep(30);
+            }
+        }
+        
+        // Ensure final position is exact
+        this.drawRibosome(targetX, 300);
     }
 
     addAminoAcidToProtein(aminoAcid, index) {
@@ -308,7 +360,7 @@ class TranslationEngine {
         aminoGroup.appendChild(circle);
         aminoGroup.appendChild(text);
         
-        // Add connecting line to previous amino acid
+        // Add connecting line to previous amino acid first (so it appears behind)
         if (index > 0) {
             const prevX = 150 + (index - 1) * 50;
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -319,10 +371,12 @@ class TranslationEngine {
             line.setAttribute('stroke', '#8D6E63');
             line.setAttribute('stroke-width', '6');
             line.setAttribute('stroke-linecap', 'round');
+            line.setAttribute('class', 'peptide-bond');
             
-            this.svg.insertBefore(line, aminoGroup);
+            this.svg.appendChild(line);
         }
         
+        // Add amino acid on top of the line
         this.svg.appendChild(aminoGroup);
     }
 
@@ -347,9 +401,10 @@ class TranslationEngine {
             'Glutamine': 'GLN', 'Arginine': 'ARG', 'Isoleucine': 'ILE',
             'Threonine': 'THR', 'Asparagine': 'ASN', 'Lysine': 'LYS',
             'Valine': 'VAL', 'Alanine': 'ALA', 'Aspartic Acid': 'ASP',
-            'Glutamic Acid': 'GLU', 'Glycine': 'GLY'
+            'Glutamic Acid': 'GLU', 'Glycine': 'GLY',
+            'Aspartate': 'ASP', 'Glutamate': 'GLU'
         };
-        return abbrs[aminoAcid] || 'UNK';
+        return abbrs[aminoAcid] || aminoAcid?.substring(0, 3).toUpperCase() || 'UNK';
     }
 
     showCompletionMessage() {
