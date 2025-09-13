@@ -724,27 +724,63 @@ class TranslationEngine {
     }
 
     showCompletionMessage() {
-        // Add completion text
-        this.addText(50, 550, `Translation complete! Protein has ${this.proteinChain.length} amino acids`, 
-            'font-family: Arial; font-size: 16px; fill: #27ae60; font-weight: bold;');
+        // Create protein sequence string with full amino acid names
+        const proteinSequence = this.proteinChain.join(' → ');
         
-        // Add completion summary box
+        // Add completion summary box positioned on the left side
         const summaryRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        summaryRect.setAttribute('x', 700);
-        summaryRect.setAttribute('y', 200);
-        summaryRect.setAttribute('width', 280);
-        summaryRect.setAttribute('height', 180);
+        summaryRect.setAttribute('x', 50);
+        summaryRect.setAttribute('y', 220);
+        summaryRect.setAttribute('width', 350);
+        summaryRect.setAttribute('height', 160);
         summaryRect.setAttribute('rx', 12);
-        summaryRect.setAttribute('fill', 'rgba(200, 255, 200, 0.9)');
+        summaryRect.setAttribute('fill', 'rgba(200, 255, 200, 0.95)');
         summaryRect.setAttribute('stroke', '#4CAF50');
         summaryRect.setAttribute('stroke-width', '2');
+        summaryRect.setAttribute('filter', 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))');
         this.svg.appendChild(summaryRect);
         
         // Add completion details
-        this.addText(720, 230, 'Translation Complete!', 'font-family: Arial; font-size: 18px; font-weight: bold; fill: #2E7D32;');
-        this.addText(720, 260, `Protein length: ${this.proteinChain.length} amino acids`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
-        this.addText(720, 280, `mRNA length: ${this.mrnaSequence.length} nucleotides`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
-        this.addText(720, 300, `Codons translated: ${this.proteinChain.length}`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(70, 250, 'Translation Complete! 🎉', 'font-family: Arial; font-size: 18px; font-weight: bold; fill: #2E7D32;');
+        this.addText(70, 275, `Protein length: ${this.proteinChain.length} amino acids`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(70, 295, `mRNA length: ${this.mrnaSequence.length} nucleotides`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        
+        // Add protein sequence (with line wrapping for long sequences)
+        this.addText(70, 320, 'Protein sequence:', 'font-family: Arial; font-size: 14px; font-weight: bold; fill: #2E7D32;');
+        
+        // Handle protein sequences by wrapping at word boundaries
+        const maxCharsPerLine = 35; // Adjusted for full amino acid names
+        
+        if (proteinSequence.length > maxCharsPerLine) {
+            // Split into multiple lines at amino acid boundaries
+            const aminoAcids = proteinSequence.split(' → ');
+            let currentLine = '';
+            let yPosition = 340;
+            
+            for (let i = 0; i < aminoAcids.length; i++) {
+                const aminoAcid = aminoAcids[i];
+                const separator = i > 0 ? ' → ' : '';
+                const testLine = currentLine + separator + aminoAcid;
+                
+                // Check if adding this amino acid would exceed line length
+                if (testLine.length > maxCharsPerLine && currentLine.length > 0) {
+                    // Display current line and start new line
+                    this.addText(70, yPosition, currentLine, 'font-family: Arial; font-size: 12px; fill: #1976D2; font-weight: bold;');
+                    currentLine = aminoAcid; // Start new line with current amino acid
+                    yPosition += 16;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            
+            // Add remaining text
+            if (currentLine) {
+                this.addText(70, yPosition, currentLine, 'font-family: Arial; font-size: 12px; fill: #1976D2; font-weight: bold;');
+            }
+        } else {
+            // Short sequence - display on single line
+            this.addText(70, 340, proteinSequence, 'font-family: Arial; font-size: 12px; fill: #1976D2; font-weight: bold;');
+        }
     }
 
     addText(x, y, text, style) {
