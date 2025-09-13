@@ -85,6 +85,9 @@ class TranslationEngine {
         // Title
         this.addText(50, 40, 'Translation: mRNA → Protein', 'font-family: Arial; font-size: 24px; font-weight: bold; fill: #2c3e50;');
         
+        // Draw cell membrane as background
+        this.drawCellMembrane();
+        
         // Draw mRNA sequence as individual nucleotides in a line
         const startX = 50;
         const startY = 120;
@@ -159,6 +162,27 @@ class TranslationEngine {
         ribosomeGroup.appendChild(largeSubunit);
         ribosomeGroup.appendChild(smallSubunit);
         this.svg.appendChild(ribosomeGroup);
+    }
+
+    drawCellMembrane() {
+        // Create a subtle cell membrane representation as an oval outline
+        const cellMembrane = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        cellMembrane.setAttribute('cx', '500');  // Center x of SVG viewBox
+        cellMembrane.setAttribute('cy', '320');  // Center y, slightly below middle
+        cellMembrane.setAttribute('rx', '450');  // Horizontal radius
+        cellMembrane.setAttribute('ry', '250');  // Vertical radius
+        cellMembrane.setAttribute('fill', 'rgba(200, 230, 255, 0.1)');  // Very light blue fill
+        cellMembrane.setAttribute('stroke', '#87CEEB');  // Sky blue outline
+        cellMembrane.setAttribute('stroke-width', '2');
+        cellMembrane.setAttribute('stroke-dasharray', '10,5');  // Dotted line pattern
+        cellMembrane.setAttribute('opacity', '0.6');
+        cellMembrane.setAttribute('class', 'cell-membrane');
+        
+        // Add behind all other elements
+        this.svg.insertBefore(cellMembrane, this.svg.firstChild);
+        
+        // Add cell membrane label
+        this.addText(50, 580, 'Cell Membrane', 'font-family: Arial; font-size: 12px; font-style: italic; fill: #87CEEB; opacity: 0.8;');
     }
 
     async runAnimation() {
