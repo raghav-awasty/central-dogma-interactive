@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Dogma Interactive - Reverse Engineering</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-links a:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e0;
+        }
+
+        .nav-links a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .main-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .protein-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: border-color 0.3s ease;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .protein-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        select, input[type="range"] {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .visualization-container {
+            margin-top: 2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-panel {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-panel h3 {
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .sequence-display {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 0.5rem 0;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #2d7738;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #38a169;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🧬 Central Dogma Interactive</h1>
+        <nav class="nav-links">
+            <a href="index.html">Forward Process</a>
+            <a href="reverse.html" class="active">Reverse Engineering</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="main-panel">
+            <h2 class="section-title">
+                🔄 Reverse Engineering: Protein → DNA
+            </h2>
+            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;">
+                Enter a protein sequence using single-letter amino acid codes. The system will determine possible DNA sequences that could produce this protein, considering the degeneracy of the genetic code.
+            </p>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="proteinSequence">
+                        Protein Sequence (Single-letter amino acid codes):
+                    </label>
+                    <textarea 
+                        id="proteinSequence" 
+                        class="protein-input"
+                        placeholder="Enter protein sequence (e.g., MWKRGS...)"
+                        rows="3"
+                    ></textarea>
+                    <small style="color: #718096; margin-top: 0.5rem; display: block;">
+                        Use standard single-letter codes: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y, * (stop)
+                    </small>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="codonStrategy">Codon Selection Strategy:</label>
+                        <select id="codonStrategy">
+                            <option value="most_common">Most Common Codons</option>
+                            <option value="gc_rich">GC-Rich Codons</option>
+                            <option value="gc_poor">GC-Poor Codons</option>
+                            <option value="balanced">Balanced Selection</option>
+                            <option value="random">Random Selection</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="animationSpeed">Animation Speed:</label>
+                        <input type="range" id="animationSpeed" min="1" max="10" value="5">
+                        <span id="speedDisplay">5x</span>
+                    </div>
+
+                    <button id="reverseBtn" class="btn btn-primary">
+                        🔄 Start Reverse Engineering
+                    </button>
+
+                    <button id="resetBtn" class="btn btn-secondary">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="visualization-container" id="visualization">
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #a0aec0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🧬</div>
+                        <p>Enter a protein sequence above to start reverse engineering</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="info-panel" id="infoPanel" style="display: none;">
+                <h3>Results:</h3>
+                <div id="resultsMRNA">
+                    <strong>Resulting mRNA Sequence:</strong>
+                    <div class="sequence-display" id="mrnaSequence"></div>
+                </div>
+                <div id="resultsDNA">
+                    <strong>Corresponding DNA Sequence (Template Strand):</strong>
+                    <div class="sequence-display" id="dnaSequence"></div>
+                </div>
+                <div id="resultsInfo">
+                    <strong>Process Information:</strong>
+                    <div id="processInfo"></div>
+                </div>
+            </div>
+            
+            <!-- Amino Acid Reference -->
+            <div class="amino-acid-reference" style="margin-top: 2rem; padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                <h3 style="margin-bottom: 1rem; color: #4a5568; cursor: pointer;" onclick="toggleReference()">
+                    📖 Amino Acid Reference Guide <span id="toggleArrow">▼</span>
+                </h3>
+                <div id="referenceContent" style="display: none;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+                        <div>
+                            <strong>Nonpolar/Hydrophobic:</strong><br>
+                            A (Ala), G (Gly), I (Ile), L (Leu),<br>
+                            M (Met), F (Phe), P (Pro), V (Val), W (Trp)
+                        </div>
+                        <div>
+                            <strong>Polar/Hydrophilic:</strong><br>
+                            C (Cys), N (Asn), Q (Gln), S (Ser),<br>
+                            T (Thr), Y (Tyr)
+                        </div>
+                        <div>
+                            <strong>Positively Charged:</strong><br>
+                            H (His), K (Lys), R (Arg)
+                        </div>
+                        <div>
+                            <strong>Negatively Charged:</strong><br>
+                            D (Asp), E (Glu)
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                        <strong>Special:</strong> * (Stop codon - terminates protein synthesis)<br>
+                        <strong>Note:</strong> Most proteins start with M (Methionine) which corresponds to the AUG start codon.
+                        <br><br>
+                        <div style="background: #e6fffa; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #38b2ac;">
+                            <strong>🎯 Educational Insight:</strong> The same protein can come from different DNA sequences! This is called <strong>codon degeneracy</strong>. 
+                            For example, both <code>AAA</code> and <code>AAG</code> code for Lysine (K), but the reverse tool might choose the "most common" one (<code>AAG</code>) 
+                            even if your original DNA used <code>AAA</code>. This is completely normal in biology!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="../public/js/reverse-translation.js"></script>
+    <script>
+        // Initialize the reverse translation system
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Reverse translation page loaded');
+            
+            // Speed control
+            const speedSlider = document.getElementById('animationSpeed');
+            const speedDisplay = document.getElementById('speedDisplay');
+            
+            speedSlider.addEventListener('input', function() {
+                speedDisplay.textContent = speedSlider.value + 'x';
+            });
+
+            // Initialize the reverse translation engine
+            if (window.ReverseTranslationEngine) {
+                window.reverseEngine = new ReverseTranslationEngine();
+                window.reverseEngine.initialize();
+            }
+        });
+        
+        // Toggle amino acid reference
+        function toggleReference() {
+            const content = document.getElementById('referenceContent');
+            const arrow = document.getElementById('toggleArrow');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                arrow.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>
