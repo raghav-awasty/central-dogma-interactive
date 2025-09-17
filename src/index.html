@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central Dogma Interactive - Translation Animation</title>
+    <title>Central Dogma Interactive - Forward Process</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧬</text></svg>">
+    <meta name="description" content="Interactive educational simulation of protein translation from mRNA sequences">
+    <meta name="keywords" content="molecular biology, translation, mRNA, protein, genetics, education">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            background-color: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
         }
         .header {
             background: rgba(255, 255, 255, 0.95);
@@ -46,46 +56,128 @@
         }
         .container {
             max-width: 1200px;
-            margin: 0 auto 2rem auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .main-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            color: #4a5568;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-section {
+            margin-bottom: 2rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
         }
         .controls {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
         }
-        .controls button {
-            margin: 5px;
-            padding: 10px 15px;
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .control-group label {
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .mrna-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: border-color 0.3s ease;
+        }
+        .mrna-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        select {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 4px;
-            background: #007bff;
-            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
-        .controls button:hover {
-            background: #0056b3;
+        .btn-primary {
+            background: #667eea;
+            color: white;
         }
-        .controls input, .controls select {
-            margin: 5px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        .visualization-container {
+            margin-top: 2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
         }
         #translation-canvas {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-top: 20px;
+            width: 100%;
+            height: 100%;
         }
-        .info {
-            margin-top: 15px;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 4px;
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .control-group {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -98,29 +190,64 @@
         </nav>
     </header>
     <div class="container">
-        <h2>Translation Animation - DNA → RNA → Protein</h2>
-        <p>An interactive educational simulation of protein translation from mRNA sequences. Explore the molecular details of how ribosomes read genetic code and synthesize proteins.</p>
-        
-        <div class="controls">
-            <label>mRNA Sequence:</label>
-            <input type="text" id="mrna-input" value="AUGAAACGCAUUUAA" style="width: 200px;">
-            <br><br>
-            
-            <label>Animation Speed (ms per codon):</label>
-            <select id="speed-select">
-                <option value="500">Fast (500ms)</option>
-                <option value="1200" selected>Normal (1200ms)</option>
-                <option value="2000">Slow (2000ms)</option>
-            </select>
-            
-            
-            <button id="start-btn">Start Translation</button>
-            <button id="pause-btn">Pause</button>
-            <button id="resume-btn">Resume</button>
-            <button id="reset-btn">Reset</button>
+        <div class="main-panel">
+            <h2 class="section-title">
+                ➡️ Forward Process: RNA → Protein
+            </h2>
+            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;">
+                An interactive educational simulation of protein translation from mRNA sequences. Explore the molecular details of how ribosomes read genetic code and synthesize proteins.
+            </p>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="mrna-input">
+                        mRNA Sequence (nucleotide bases):
+                    </label>
+                    <input 
+                        type="text" 
+                        id="mrna-input" 
+                        class="mrna-input"
+                        value="AUGAAACGCAUUUAA"
+                        placeholder="Enter mRNA sequence (e.g., AUGAAACGCAUUUAA)"
+                    >
+                    <small style="color: #718096; margin-top: 0.5rem; display: block;">
+                        Use RNA nucleotides: A, U, G, C (not T). Sequence should be in triplets (codons).
+                    </small>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="speed-select">Animation Speed:</label>
+                        <select id="speed-select">
+                            <option value="500">Fast (500ms)</option>
+                            <option value="1200" selected>Normal (1200ms)</option>
+                            <option value="2000">Slow (2000ms)</option>
+                        </select>
+                    </div>
+
+                    <button id="start-btn" class="btn btn-primary">
+                        ▶️ Start Translation
+                    </button>
+
+                    <button id="pause-btn" class="btn btn-secondary">
+                        ⏸️ Pause
+                    </button>
+
+                    <button id="resume-btn" class="btn btn-secondary">
+                        ▶️ Resume
+                    </button>
+
+                    <button id="reset-btn" class="btn btn-secondary">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="visualization-container">
+                <div id="translation-canvas"></div>
+            </div>
         </div>
-        
-        <div id="translation-canvas"></div>
+    </div>
 
     <!-- Include required scripts -->
     <script src="../public/js/translation.js"></script>
