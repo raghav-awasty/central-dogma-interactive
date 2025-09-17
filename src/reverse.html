@@ -7,6 +7,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧬</text></svg>">
     <meta name="description" content="Reverse engineering tool to determine DNA sequences from protein sequences">
     <meta name="keywords" content="molecular biology, reverse translation, protein, DNA, genetics, codon optimization">
+    <meta name="author" content="Central Dogma Interactive">
+    <meta name="robots" content="index, follow">
     <style>
         * {
             margin: 0;
@@ -253,6 +255,40 @@
             border-left: 4px solid #38a169;
         }
 
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus styles for keyboard navigation */
+        .btn:focus, 
+        .protein-input:focus, 
+        select:focus,
+        input[type="range"]:focus,
+        .nav-links a:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            body {
+                background: linear-gradient(135deg, #000080 0%, #4B0082 100%);
+            }
+            .main-panel {
+                background: rgba(255, 255, 255, 1);
+                border: 2px solid #000;
+            }
+        }
+        
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -273,24 +309,26 @@
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>🧬 Central Dogma Interactive</h1>
-        <nav class="nav-links">
-            <a href="index.html">Forward Process</a>
-            <a href="reverse.html" class="active">Reverse Engineering</a>
+    <header class="header" role="banner">
+        <h1 id="main-title">🧬 Central Dogma Interactive</h1>
+        <nav class="nav-links" role="navigation" aria-label="Main navigation">
+            <a href="index.html" aria-describedby="nav-help">Forward Process</a>
+            <a href="reverse.html" class="active" aria-current="page" aria-describedby="nav-help">Reverse Engineering</a>
+            <div id="nav-help" class="sr-only">Navigate between forward translation and reverse engineering tools</div>
         </nav>
     </header>
 
-    <div class="container">
+    <main class="container" role="main">
         <div class="main-panel">
-            <h2 class="section-title">
+            <h2 class="section-title" id="process-title">
                 ⬅️ Reverse Engineering: Protein → RNA → DNA
             </h2>
-            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;">
+            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;" id="description">
                 Enter a protein sequence using single-letter amino acid codes. The system will determine possible DNA sequences that could produce this protein, considering the degeneracy of the genetic code.
             </p>
 
-            <div class="input-section">
+            <div class="input-section" role="region" aria-labelledby="input-heading">
+                <h3 id="input-heading" class="sr-only">Reverse Engineering Input Parameters</h3>
                 <div class="input-group">
                     <label for="proteinSequence">
                         Protein Sequence (Single-letter amino acid codes):
@@ -300,66 +338,83 @@
                         class="protein-input"
                         placeholder="Enter protein sequence (e.g., MWKRGS...)"
                         rows="3"
+                        aria-describedby="protein-help sequence-rules"
+                        aria-label="Protein sequence input field"
+                        autocomplete="off"
+                        spellcheck="false"
                     ></textarea>
-                    <small style="color: #718096; margin-top: 0.5rem; display: block;">
+                    <div id="protein-help" class="sr-only">Enter a sequence of amino acids using single-letter codes. The system will determine possible DNA sequences that could produce this protein.</div>
+                    <small id="sequence-rules" style="color: #718096; margin-top: 0.5rem; display: block;">
                         Use standard single-letter codes: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y, * (stop)
                     </small>
                 </div>
 
-                <div class="controls">
+                <div class="controls" role="group" aria-labelledby="controls-heading">
+                    <h4 id="controls-heading" class="sr-only">Reverse Engineering Controls</h4>
                     <div class="control-group">
                         <label for="codonStrategy">Codon Selection Strategy:</label>
-                        <select id="codonStrategy">
+                        <select id="codonStrategy" aria-describedby="strategy-help">
                             <option value="most_common">Most Common Codons</option>
                             <option value="gc_rich">GC-Rich Codons</option>
                             <option value="gc_poor">GC-Poor Codons</option>
                             <option value="balanced">Balanced Selection</option>
                             <option value="random">Random Selection</option>
                         </select>
+                        <div id="strategy-help" class="sr-only">Choose how codons are selected when multiple codons code for the same amino acid. Most common codons are typically used in living organisms.</div>
                     </div>
 
                     <div class="control-group">
                         <label for="animationSpeed">Animation Speed:</label>
-                        <input type="range" id="animationSpeed" min="1" max="10" value="5">
-                        <span id="speedDisplay">5x</span>
+                        <input type="range" id="animationSpeed" min="1" max="10" value="5" 
+                               aria-describedby="speed-help" aria-valuetext="5 times normal speed">
+                        <span id="speedDisplay" aria-hidden="true">5x</span>
+                        <div id="speed-help" class="sr-only">Control the speed of the reverse engineering animation from 1x to 10x normal speed.</div>
                     </div>
 
-                    <button id="reverseBtn" class="btn btn-primary">
+                    <button id="reverseBtn" class="btn btn-primary" 
+                            aria-describedby="reverse-help">
                         🔍 Start Reverse Engineering
                     </button>
+                    <div id="reverse-help" class="sr-only">Begin reverse engineering process to determine DNA sequence from the protein sequence you entered</div>
 
-                    <button id="resetBtn" class="btn btn-secondary">
-                        🔄 Reset
+                    <button id="resetBtn" class="btn btn-secondary" 
+                            aria-describedby="reset-help">
+                        ⚙️ Reset
                     </button>
+                    <div id="reset-help" class="sr-only">Reset the reverse engineering process and clear all results to start over</div>
                 </div>
             </div>
 
-            <div class="visualization-container" id="visualization">
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #a0aec0;">
+            <div class="visualization-container" id="visualization" role="img" aria-labelledby="viz-title" aria-describedby="viz-description">
+                <h4 id="viz-title" class="sr-only">Reverse Engineering Animation Visualization</h4>
+                <div id="viz-description" class="sr-only">This area will show an animated visualization of reverse engineering from protein to mRNA to DNA when you start the process. The visualization shows the step-by-step conversion with colored amino acids and resulting nucleotides.</div>
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #a0aec0;" aria-hidden="true">
                     <div style="text-align: center;">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">🧬</div>
                         <p>Enter a protein sequence above to start reverse engineering</p>
                     </div>
                 </div>
+                <div id="animation-status" class="sr-only" aria-live="assertive"></div>
             </div>
 
-            <div class="progress-bar">
+            <div class="progress-bar" role="progressbar" aria-labelledby="progress-label" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div id="progress-label" class="sr-only">Reverse engineering progress</div>
                 <div class="progress-fill" id="progressFill"></div>
             </div>
 
-            <div class="info-panel" id="infoPanel" style="display: none;">
-                <h3>Results:</h3>
+            <div class="info-panel" id="infoPanel" style="display: none;" role="region" aria-labelledby="results-heading">
+                <h3 id="results-heading">Results:</h3>
                 <div id="resultsMRNA">
-                    <strong>Resulting mRNA Sequence:</strong>
-                    <div class="sequence-display" id="mrnaSequence"></div>
+                    <h4>Resulting mRNA Sequence:</h4>
+                    <div class="sequence-display" id="mrnaSequence" role="text" aria-label="Generated mRNA sequence"></div>
                 </div>
                 <div id="resultsDNA">
-                    <strong>Corresponding DNA Sequence (Template Strand):</strong>
-                    <div class="sequence-display" id="dnaSequence"></div>
+                    <h4>Corresponding DNA Sequence (Template Strand):</h4>
+                    <div class="sequence-display" id="dnaSequence" role="text" aria-label="Generated DNA sequence"></div>
                 </div>
                 <div id="resultsInfo">
-                    <strong>Process Information:</strong>
-                    <div id="processInfo"></div>
+                    <h4>Process Information:</h4>
+                    <div id="processInfo" role="text" aria-label="Process statistics and information"></div>
                 </div>
             </div>
             
@@ -402,7 +457,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <div class="tooltip" id="tooltip"></div>
 

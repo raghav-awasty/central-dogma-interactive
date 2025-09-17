@@ -7,6 +7,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧬</text></svg>">
     <meta name="description" content="Interactive educational simulation of protein translation from mRNA sequences">
     <meta name="keywords" content="molecular biology, translation, mRNA, protein, genetics, education">
+    <meta name="author" content="Central Dogma Interactive">
+    <meta name="robots" content="index, follow">
     <style>
         * {
             margin: 0;
@@ -164,6 +166,39 @@
             width: 100%;
             height: 100%;
         }
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus styles for keyboard navigation */
+        .btn:focus, 
+        .mrna-input:focus, 
+        select:focus,
+        .nav-links a:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            body {
+                background: linear-gradient(135deg, #000080 0%, #4B0082 100%);
+            }
+            .main-panel {
+                background: rgba(255, 255, 255, 1);
+                border: 2px solid #000;
+            }
+        }
+        
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -182,23 +217,25 @@
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>🧬 Central Dogma Interactive</h1>
-        <nav class="nav-links">
-            <a href="index.html" class="active">Forward Process</a>
-            <a href="reverse.html">Reverse Engineering</a>
+    <header class="header" role="banner">
+        <h1 id="main-title">🧬 Central Dogma Interactive</h1>
+        <nav class="nav-links" role="navigation" aria-label="Main navigation">
+            <a href="index.html" class="active" aria-current="page" aria-describedby="nav-help">Forward Process</a>
+            <a href="reverse.html" aria-describedby="nav-help">Reverse Engineering</a>
+            <div id="nav-help" class="sr-only">Navigate between forward translation and reverse engineering tools</div>
         </nav>
     </header>
-    <div class="container">
+    <main class="container" role="main">
         <div class="main-panel">
-            <h2 class="section-title">
+            <h2 class="section-title" id="process-title">
                 ➡️ Forward Process: RNA → Protein
             </h2>
-            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;">
+            <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;" id="description">
                 An interactive educational simulation of protein translation from mRNA sequences. Explore the molecular details of how ribosomes read genetic code and synthesize proteins.
             </p>
 
-            <div class="input-section">
+            <div class="input-section" role="region" aria-labelledby="input-heading">
+                <h3 id="input-heading" class="sr-only">Translation Input Parameters</h3>
                 <div class="input-group">
                     <label for="mrna-input">
                         mRNA Sequence (nucleotide bases):
@@ -209,45 +246,66 @@
                         class="mrna-input"
                         value="AUGAAACGCAUUUAA"
                         placeholder="Enter mRNA sequence (e.g., AUGAAACGCAUUUAA)"
+                        aria-describedby="mrna-help sequence-rules"
+                        aria-label="mRNA sequence input field"
+                        autocomplete="off"
+                        spellcheck="false"
                     >
-                    <small style="color: #718096; margin-top: 0.5rem; display: block;">
+                    <div id="mrna-help" class="sr-only">Enter a sequence of RNA nucleotides to translate into a protein. The sequence will be processed in groups of three nucleotides called codons.</div>
+                    <small id="sequence-rules" style="color: #718096; margin-top: 0.5rem; display: block;">
                         Use RNA nucleotides: A, U, G, C (not T). Sequence should be in triplets (codons).
                     </small>
                 </div>
 
-                <div class="controls">
+                <div class="controls" role="group" aria-labelledby="controls-heading">
+                    <h4 id="controls-heading" class="sr-only">Animation Controls</h4>
                     <div class="control-group">
                         <label for="speed-select">Animation Speed:</label>
-                        <select id="speed-select">
+                        <select id="speed-select" aria-describedby="speed-help">
                             <option value="500">Fast (500ms)</option>
                             <option value="1200" selected>Normal (1200ms)</option>
                             <option value="2000">Slow (2000ms)</option>
                         </select>
+                        <div id="speed-help" class="sr-only">Select how fast the translation animation should run. Slower speeds are better for educational purposes.</div>
                     </div>
 
-                    <button id="start-btn" class="btn btn-primary">
+                    <button id="start-btn" class="btn btn-primary" 
+                            aria-describedby="start-help"
+                            aria-keyshortcuts="Enter">
                         ▶️ Start Translation
                     </button>
+                    <div id="start-help" class="sr-only">Begin the mRNA to protein translation animation using the sequence you entered</div>
 
-                    <button id="pause-btn" class="btn btn-secondary">
+                    <button id="pause-btn" class="btn btn-secondary" 
+                            aria-describedby="pause-help"
+                            disabled>
                         ⏸️ Pause
                     </button>
+                    <div id="pause-help" class="sr-only">Pause the currently running translation animation</div>
 
-                    <button id="resume-btn" class="btn btn-secondary">
+                    <button id="resume-btn" class="btn btn-secondary" 
+                            aria-describedby="resume-help"
+                            disabled>
                         ▶️ Resume
                     </button>
+                    <div id="resume-help" class="sr-only">Resume the paused translation animation</div>
 
-                    <button id="reset-btn" class="btn btn-secondary">
+                    <button id="reset-btn" class="btn btn-secondary" 
+                            aria-describedby="reset-help">
                         🔄 Reset
                     </button>
+                    <div id="reset-help" class="sr-only">Reset the animation and clear all results to start over</div>
                 </div>
             </div>
 
-            <div class="visualization-container">
-                <div id="translation-canvas"></div>
+            <div class="visualization-container" role="img" aria-labelledby="viz-title" aria-describedby="viz-description">
+                <h4 id="viz-title" class="sr-only">Translation Animation Visualization</h4>
+                <div id="viz-description" class="sr-only">This area will show an animated visualization of mRNA translation into protein when you start the animation. The visualization includes colored nucleotides, ribosome movement, and growing protein chain.</div>
+                <div id="translation-canvas" aria-live="polite" aria-atomic="false"></div>
+                <div id="animation-status" class="sr-only" aria-live="assertive"></div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Include required scripts -->
     <script src="../public/js/translation.js"></script>
@@ -398,15 +456,91 @@
             const stepMode = false; // Always use continuous mode
 
             if (!mrnaSequence) {
+                announceToScreenReader('Error: Please enter an mRNA sequence before starting translation.');
                 alert('Please enter an mRNA sequence');
                 return;
             }
 
+            // Update button states for accessibility
+            updateButtonStates('animating');
+            announceToScreenReader(`Starting translation of mRNA sequence: ${mrnaSequence}. Animation beginning.`);
+            
             console.log('Starting translation:', { mrnaSequence, stepMode });
             translationEngine.startTranslation(mrnaSequence, stepMode);
         }
+        
+        function announceToScreenReader(message) {
+            const statusElement = document.getElementById('animation-status');
+            if (statusElement) {
+                statusElement.textContent = message;
+                // Clear after a delay to avoid cluttering screen reader history
+                setTimeout(() => {
+                    statusElement.textContent = '';
+                }, 3000);
+            }
+        }
+        
+        function updateButtonStates(state) {
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resumeBtn = document.getElementById('resume-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            switch(state) {
+                case 'animating':
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = false;
+                    resumeBtn.disabled = true;
+                    resetBtn.disabled = false;
+                    break;
+                case 'paused':
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    break;
+                case 'idle':
+                default:
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    resumeBtn.disabled = true;
+                    resetBtn.disabled = false;
+                    break;
+            }
+        }
 
         function showEducationalFeedback(eventType, data) {
+            // Announce important events to screen readers
+            let announcement = '';
+            switch(eventType) {
+                case 'translation:started':
+                    announcement = `Translation started at position ${data.startPosition}`;
+                    updateButtonStates('animating');
+                    break;
+                case 'codon:translated':
+                    announcement = `Translated codon ${data.codon} to amino acid ${data.aminoAcid}. Protein now has ${data.proteinLength} amino acids.`;
+                    break;
+                case 'stop:encountered':
+                    announcement = `Stop codon ${data.stopCodon} encountered. Translation complete. Final protein has ${data.proteinLength} amino acids.`;
+                    updateButtonStates('idle');
+                    break;
+                case 'translation:complete':
+                    announcement = `Translation complete! Final protein sequence: ${data.sequence}`;
+                    updateButtonStates('idle');
+                    break;
+                case 'sequence:warning':
+                    if (data.type === 'error') {
+                        announcement = `Error: ${data.message}`;
+                    } else {
+                        announcement = `Warning: ${data.message}`;
+                    }
+                    break;
+            }
+            
+            if (announcement) {
+                announceToScreenReader(announcement);
+            }
+            
             const feedbackDiv = document.createElement('div');
             
             // Set background color based on message type
