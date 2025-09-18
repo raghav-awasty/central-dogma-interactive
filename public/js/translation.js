@@ -579,13 +579,13 @@ class TranslationEngine {
             const dnaBase = this.dnaSequence[i];
             const mrnaBase = this.getMRNAComplement(dnaBase);
             
-            // Move RNA polymerase
+            // Move RNA polymerase at fixed smooth rate
             const polymeraseAnimation = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform');
             polymeraseAnimation.setAttribute('attributeName', 'transform');
             polymeraseAnimation.setAttribute('type', 'translate');
             polymeraseAnimation.setAttribute('from', `${i * nucleotideSpacing} 0`);
             polymeraseAnimation.setAttribute('to', `${(i + 1) * nucleotideSpacing} 0`);
-            polymeraseAnimation.setAttribute('dur', `${this.speed / 1000}s`);
+            polymeraseAnimation.setAttribute('dur', '0.2s'); // Fixed smooth rate
             polymerase.appendChild(polymeraseAnimation);
             
             // Create corresponding mRNA nucleotide
@@ -637,7 +637,7 @@ class TranslationEngine {
                 });
             }
             
-            await this.sleep(this.speed);
+            await this.sleep(200); // Fixed smooth timing for transcription
         }
         
         if (this.educationalCallback) {

@@ -365,10 +365,11 @@
 
                     <div class="control-group">
                         <label for="animationSpeed">Animation Speed:</label>
-                        <input type="range" id="animationSpeed" min="1" max="10" value="5" 
-                               aria-describedby="speed-help" aria-valuetext="5 times normal speed">
-                        <span id="speedDisplay" aria-hidden="true">5x</span>
-                        <div id="speed-help" class="sr-only">Control the speed of the reverse engineering animation from 1x to 10x normal speed.</div>
+                        <select id="animationSpeed" aria-describedby="speed-help">
+                            <option value="fast">Fast</option>
+                            <option value="normal" selected>Normal</option>
+                        </select>
+                        <div id="speed-help" class="sr-only">Choose between fast or normal animation speed for the reverse engineering process.</div>
                     </div>
 
                     <button id="reverseBtn" class="btn btn-primary" 
@@ -379,7 +380,7 @@
 
                     <button id="resetBtn" class="btn btn-secondary" 
                             aria-describedby="reset-help">
-                        ⚙️ Reset
+                        🔄 Reset
                     </button>
                     <div id="reset-help" class="sr-only">Reset the reverse engineering process and clear all results to start over</div>
                 </div>
@@ -467,13 +468,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Reverse translation page loaded');
             
-            // Speed control
-            const speedSlider = document.getElementById('animationSpeed');
-            const speedDisplay = document.getElementById('speedDisplay');
-            
-            speedSlider.addEventListener('input', function() {
-                speedDisplay.textContent = speedSlider.value + 'x';
-            });
+            // Speed control is now handled by the dropdown in the UI
 
             // Initialize the reverse translation engine
             if (window.ReverseTranslationEngine) {
