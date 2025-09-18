@@ -160,7 +160,55 @@ class ReverseTranslationEngine {
 
     initializeVisualization() {
         this.animationContainer = document.getElementById('visualization');
-        this.tooltip = document.getElementById('tooltip');
+        this.setupTooltipSystem();
+    }
+
+    setupTooltipSystem() {
+        // Create tooltip element
+        this.tooltip = document.createElement('div');
+        this.tooltip.id = 'bio-tooltip-reverse';
+        this.tooltip.style.cssText = `
+            position: fixed;
+            background: rgba(44, 62, 80, 0.85);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            max-width: 280px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            border: 1px solid rgba(52, 152, 219, 0.6);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            backdrop-filter: blur(2px);
+        `;
+        document.body.appendChild(this.tooltip);
+    }
+
+    showTooltip(content, event) {
+        if (!this.tooltip) return;
+        
+        this.tooltip.innerHTML = content;
+        
+        // Use mouse position for more reliable positioning
+        const x = event.clientX || event.pageX || 0;
+        const y = event.clientY || event.pageY || 0;
+        
+        // Position tooltip with some offset to avoid covering the element
+        this.tooltip.style.left = (x + 15) + 'px';
+        this.tooltip.style.top = (y - 50) + 'px';
+        this.tooltip.style.opacity = '1';
+        this.tooltip.style.transform = 'translateY(0)';
+    }
+
+    hideTooltip() {
+        if (!this.tooltip) return;
+        
+        this.tooltip.style.opacity = '0';
+        this.tooltip.style.transform = 'translateY(-10px)';
     }
 
     validateProteinSequence(sequence) {
@@ -446,8 +494,24 @@ class ReverseTranslationEngine {
             
             svg.appendChild(text);
             
-            // Add tooltip interaction
-            this.addTooltipToElement(circle, `${aa} (${this.getAminoAcidName(aa)})`);
+            // Add rich tooltip interaction
+            circle.addEventListener('mouseenter', (e) => {
+                clearTimeout(circle.hoverTimeout);
+                circle.hoverTimeout = setTimeout(() => {
+                    this.showTooltip(this.getAminoAcidInfo(aa), e);
+                }, 50);
+            });
+            
+            circle.addEventListener('mouseleave', () => {
+                clearTimeout(circle.hoverTimeout);
+                this.hideTooltip();
+            });
+            
+            circle.addEventListener('mousemove', (e) => {
+                if (this.tooltip && this.tooltip.style.opacity === '1') {
+                    this.showTooltip(this.getAminoAcidInfo(aa), e);
+                }
+            });
         }
         
         await this.delay(proteinSequence.length * 100 + 500);
@@ -540,7 +604,26 @@ class ReverseTranslationEngine {
                 
                 svg.appendChild(nucText);
                 
-                this.addTooltipToElement(rect, `${nucleotide} (${this.getNucleotideName(nucleotide)})`);
+                // Add rich tooltip interaction for nucleotides
+                rect.addEventListener('mouseenter', (e) => {
+                    clearTimeout(rect.hoverTimeout);
+                    rect.hoverTimeout = setTimeout(() => {
+                        const position = codonIndex * 3 + j; // Calculate position in mRNA sequence
+                        this.showTooltip(this.getNucleotideInfo(nucleotide, position), e);
+                    }, 50);
+                });
+                
+                rect.addEventListener('mouseleave', () => {
+                    clearTimeout(rect.hoverTimeout);
+                    this.hideTooltip();
+                });
+                
+                rect.addEventListener('mousemove', (e) => {
+                    if (this.tooltip && this.tooltip.style.opacity === '1') {
+                        const position = codonIndex * 3 + j;
+                        this.showTooltip(this.getNucleotideInfo(nucleotide, position), e);
+                    }
+                });
             }
             
             codonIndex++;
@@ -628,7 +711,24 @@ class ReverseTranslationEngine {
             
             svg.appendChild(baseText);
             
-            this.addTooltipToElement(rect, `${base} (DNA Base)`);
+            // Add rich tooltip interaction for DNA bases
+            rect.addEventListener('mouseenter', (e) => {
+                clearTimeout(rect.hoverTimeout);
+                rect.hoverTimeout = setTimeout(() => {
+                    this.showTooltip(this.getDNABaseInfo(base, i), e);
+                }, 50);
+            });
+            
+            rect.addEventListener('mouseleave', () => {
+                clearTimeout(rect.hoverTimeout);
+                this.hideTooltip();
+            });
+            
+            rect.addEventListener('mousemove', (e) => {
+                if (this.tooltip && this.tooltip.style.opacity === '1') {
+                    this.showTooltip(this.getDNABaseInfo(base, i), e);
+                }
+            });
         }
         
         await this.delay(dnaSequence.length * 50 + 1000);
@@ -724,12 +824,27 @@ class ReverseTranslationEngine {
 
     getAminoAcidColor(aa) {
         const colors = {
-            'A': '#d32f2f', 'R': '#c62828', 'N': '#ff8f00', 'D': '#f57c00',
-            'C': '#388e3c', 'Q': '#689f38', 'E': '#558b2f', 'G': '#00796b',
-            'H': '#1976d2', 'I': '#7b1fa2', 'L': '#512da8', 'K': '#303f9f',
-            'M': '#8e24aa', 'F': '#c2185b', 'P': '#ad1457', 'S': '#d84315',
-            'T': '#5d4037', 'W': '#455a64', 'Y': '#f9a825', 'V': '#6a4c93',
-            '*': '#424242'
+            'A': '#558b2f',    // Alanine
+            'R': '#303f9f',    // Arginine  
+            'N': '#8e24aa',    // Asparagine
+            'D': '#d32f2f',    // Aspartic Acid
+            'C': '#455a64',    // Cysteine
+            'Q': '#f9a825',    // Glutamine
+            'E': '#7b1fa2',    // Glutamic Acid
+            'G': '#1976d2',    // Glycine
+            'H': '#00695c',    // Histidine
+            'I': '#689f38',    // Isoleucine
+            'L': '#1976d2',    // Leucine
+            'K': '#00796b',    // Lysine
+            'M': '#388e3c',    // Methionine
+            'F': '#f57c00',    // Phenylalanine
+            'P': '#5d4037',    // Proline
+            'S': '#7b1fa2',    // Serine
+            'T': '#bf360c',    // Threonine
+            'W': '#c2185b',    // Tryptophan
+            'Y': '#d84315',    // Tyrosine
+            'V': '#ff8f00',    // Valine
+            '*': '#424242'     // Stop Codon
         };
         return colors[aa] || '#757575';
     }
@@ -746,11 +861,47 @@ class ReverseTranslationEngine {
         return names[aa] || 'Unknown';
     }
 
+    getAminoAcidInfo(aa) {
+        const info = {
+            'M': { name: 'Methionine', abbr: 'Met', type: 'Nonpolar', property: 'Start amino acid, contains sulfur', essential: true },
+            'A': { name: 'Alanine', abbr: 'Ala', type: 'Nonpolar', property: 'Simplest amino acid after glycine', essential: false },
+            'Q': { name: 'Glutamine', abbr: 'Gln', type: 'Polar', property: 'Amide group, important for protein folding', essential: false },
+            'F': { name: 'Phenylalanine', abbr: 'Phe', type: 'Aromatic', property: 'Large benzene ring, hydrophobic', essential: true },
+            'L': { name: 'Leucine', abbr: 'Leu', type: 'Nonpolar', property: 'Branched chain, very hydrophobic', essential: true },
+            'I': { name: 'Isoleucine', abbr: 'Ile', type: 'Nonpolar', property: 'Branched chain, isomer of leucine', essential: true },
+            'V': { name: 'Valine', abbr: 'Val', type: 'Nonpolar', property: 'Branched chain, smaller than Leu/Ile', essential: true },
+            'S': { name: 'Serine', abbr: 'Ser', type: 'Polar', property: 'Hydroxyl group, can be phosphorylated', essential: false },
+            'P': { name: 'Proline', abbr: 'Pro', type: 'Nonpolar', property: 'Cyclic structure, creates kinks in proteins', essential: false },
+            'T': { name: 'Threonine', abbr: 'Thr', type: 'Polar', property: 'Hydroxyl group, can be phosphorylated', essential: true },
+            'Y': { name: 'Tyrosine', abbr: 'Tyr', type: 'Aromatic', property: 'Phenol group, can be phosphorylated', essential: false },
+            'H': { name: 'Histidine', abbr: 'His', type: 'Basic', property: 'Imidazole ring, pH buffering', essential: true },
+            'N': { name: 'Asparagine', abbr: 'Asn', type: 'Polar', property: 'Amide group, glycosylation sites', essential: false },
+            'K': { name: 'Lysine', abbr: 'Lys', type: 'Basic', property: 'Positively charged, histone modification', essential: true },
+            'D': { name: 'Aspartic Acid', abbr: 'Asp', type: 'Acidic', property: 'Negatively charged, enzyme active sites', essential: false },
+            'E': { name: 'Glutamic Acid', abbr: 'Glu', type: 'Acidic', property: 'Negatively charged, neurotransmitter precursor', essential: false },
+            'C': { name: 'Cysteine', abbr: 'Cys', type: 'Polar', property: 'Forms disulfide bonds, protein structure', essential: false },
+            'W': { name: 'Tryptophan', abbr: 'Trp', type: 'Aromatic', property: 'Largest amino acid, serotonin precursor', essential: true },
+            'R': { name: 'Arginine', abbr: 'Arg', type: 'Basic', property: 'Guanidinium group, very basic', essential: false },
+            'G': { name: 'Glycine', abbr: 'Gly', type: 'Nonpolar', property: 'Smallest amino acid, flexible backbone', essential: false },
+            '*': { name: 'Stop Codon', abbr: 'Stop', type: 'Termination', property: 'Signals end of protein synthesis', essential: true }
+        }[aa] || { name: 'Unknown', abbr: '?', type: 'Unknown', property: 'Information not available', essential: false };
+
+        return `
+            <strong>${info.name} (${info.abbr})</strong><br>
+            <em>${info.type} amino acid</em><br>
+            Essential: ${info.essential ? 'Yes' : 'No'}<br>
+            Property: ${info.property}
+        `;
+    }
+
     getNucleotideColor(nucleotide) {
         const colors = {
-            'A': '#ff6b6b', 'U': '#4ecdc4', 'G': '#45b7d1', 'C': '#f9ca24'
+            'A': '#E57373',  // Red - matches forward page
+            'U': '#64B5F6',  // Blue - matches forward page
+            'G': '#81C784',  // Green - matches forward page
+            'C': '#FFB74D'   // Orange - matches forward page
         };
-        return colors[nucleotide] || '#95a5a6';
+        return colors[nucleotide] || '#999';
     }
 
     getNucleotideName(nucleotide) {
@@ -760,28 +911,104 @@ class ReverseTranslationEngine {
         return names[nucleotide] || 'Unknown';
     }
 
+    getNucleotideInfo(nucleotide, position) {
+        const info = {
+            'A': {
+                name: 'Adenine',
+                type: 'Purine',
+                pairs: 'Thymine (T) in DNA, Uracil (U) in RNA',
+                structure: 'Double-ring structure'
+            },
+            'U': {
+                name: 'Uracil',
+                type: 'Pyrimidine',
+                pairs: 'Adenine (A)',
+                structure: 'Single-ring structure',
+                note: 'Found in RNA instead of Thymine'
+            },
+            'G': {
+                name: 'Guanine',
+                type: 'Purine',
+                pairs: 'Cytosine (C)',
+                structure: 'Double-ring structure'
+            },
+            'C': {
+                name: 'Cytosine',
+                type: 'Pyrimidine',
+                pairs: 'Guanine (G)',
+                structure: 'Single-ring structure'
+            }
+        }[nucleotide];
+
+        const codonIndex = Math.floor(position / 3);
+        const positionInCodon = (position % 3) + 1;
+        
+        return `
+            <strong>${info.name} (${nucleotide})</strong><br>
+            <em>${info.type} base</em><br>
+            Position: ${position + 1} (Codon ${codonIndex + 1}, Position ${positionInCodon})<br>
+            Pairs with: ${info.pairs}<br>
+            Structure: ${info.structure}
+            ${info.note ? '<br><small>' + info.note + '</small>' : ''}
+        `;
+    }
+
     getDNABaseColor(base) {
         const colors = {
-            'A': '#ff6b6b', 'T': '#4ecdc4', 'G': '#45b7d1', 'C': '#f9ca24'
+            'A': '#FF5722',  // Deep Red - matches forward page
+            'T': '#2196F3',  // Deep Blue - matches forward page
+            'G': '#4CAF50',  // Deep Green - matches forward page
+            'C': '#FF9800'   // Deep Orange - matches forward page
         };
-        return colors[base] || '#95a5a6';
+        return colors[base] || '#999';
     }
 
-    addTooltipToElement(element, text) {
-        element.addEventListener('mouseenter', (e) => {
-            this.tooltip.textContent = text;
-            this.tooltip.style.opacity = '1';
-        });
+    getDNABaseInfo(base, position) {
+        const info = {
+            'A': {
+                name: 'Adenine',
+                type: 'Purine',
+                pairs: 'Thymine (T)',
+                transcribes: 'Uracil (U)',
+                structure: 'Double-ring structure'
+            },
+            'T': {
+                name: 'Thymine',
+                type: 'Pyrimidine',
+                pairs: 'Adenine (A)',
+                transcribes: 'Adenine (A)',
+                structure: 'Single-ring structure',
+                note: 'Found in DNA, not RNA'
+            },
+            'G': {
+                name: 'Guanine',
+                type: 'Purine',
+                pairs: 'Cytosine (C)',
+                transcribes: 'Cytosine (C)',
+                structure: 'Double-ring structure'
+            },
+            'C': {
+                name: 'Cytosine',
+                type: 'Pyrimidine',
+                pairs: 'Guanine (G)',
+                transcribes: 'Guanine (G)',
+                structure: 'Single-ring structure'
+            }
+        }[base];
 
-        element.addEventListener('mousemove', (e) => {
-            this.tooltip.style.left = e.pageX + 10 + 'px';
-            this.tooltip.style.top = e.pageY - 30 + 'px';
-        });
-
-        element.addEventListener('mouseleave', () => {
-            this.tooltip.style.opacity = '0';
-        });
+        const codonIndex = Math.floor(position / 3);
+        const positionInCodon = (position % 3) + 1;
+        
+        return `
+            <strong>${info.name} (${base})</strong><br>
+            <em>${info.type} base</em><br>
+            Position: ${position + 1} (Codon ${codonIndex + 1}, Position ${positionInCodon})<br>
+            Transcribes to: ${info.transcribes}<br>
+            Structure: ${info.structure}
+            ${info.note ? '<br><small>' + info.note + '</small>' : ''}
+        `;
     }
+
 
     showError(message) {
         this.clearMessages();

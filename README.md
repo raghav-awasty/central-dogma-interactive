@@ -1,24 +1,31 @@
 # 🧬 Central Dogma Interactive
 
-An interactive educational simulation that visualizes protein translation from mRNA sequences. Students can explore how ribosomes read genetic code and synthesize proteins through animated, step-by-step visualization.
+A comprehensive educational simulation that visualizes the complete central dogma of molecular biology: DNA → RNA → Protein and its reverse. This interactive tool provides animated, step-by-step visualization of transcription, translation, and reverse translation processes.
 
 ## ✨ Features
 
-- **Interactive Animation**: Watch ribosomes translate mRNA codons into amino acids
-- **Educational Tooltips**: Hover over elements to learn about nucleotides, amino acids, and cellular components
-- **Complete Genetic Code**: Supports all 64 codons and 20 amino acids
+- **Dual Animation Modes**: Forward Translation (DNA → mRNA → Protein) and Reverse Translation from protein sequences back to DNA
+- **Comprehensive Tooltips**: Hover over elements to learn about nucleotides, amino acids, and cellular components
+- **Complete Genetic Code**: Supports all 64 codons and 20 amino acids, and multiple strategies for reverse translation
 
 ## 🚀 Quick Start
 
+### Forward Translation (DNA → RNA → Protein)
 1. Open `src/index.html` in your web browser
-2. Enter an mRNA sequence (e.g., `AUGGCCCAGUGA`)
-3. Click "Start Translation" to watch the animation
-4. Hover over elements to see educational information
+2. Enter a DNA sequence (e.g., `ATGGCCCAGTGA`)
+3. Choose "Start Central Dogma" for full DNA→mRNA→Protein animation
+4. Hover over any element for detailed educational information
 
-## 🎯 Educational Use
+### Reverse Translation (Protein → RNA → DNA)
+1. Navigate to `src/reverse-translation.html`
+2. Enter a protein sequence using single-letter codes (e.g., `MAQV`)
+3. Select an optimization strategy (most common, GC-rich, etc.)
+4. Click "Start Reverse Engineering" to see the reverse engineering process
+5. Explore the resulting mRNA and DNA sequences with interactive tooltips
 
-Perfect for:
+## 🎯 Educational Applications
+
+### **Perfect for:**
 - High school biology classes
-- College molecular biology courses  
+- College molecular biology courses
 - Self-directed learning about protein synthesis
-- Understanding the genetic code
