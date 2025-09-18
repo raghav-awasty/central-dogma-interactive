@@ -270,6 +270,41 @@ class TranslationEngine {
         };
     }
 
+    async startCentralDogma(dnaSequence, mrnaSequence, stepMode = false) {
+        if (this.isAnimating) return;
+
+        this.dnaSequence = dnaSequence.toUpperCase();
+        this.mrnaSequence = mrnaSequence.toUpperCase();
+        
+        // Validate sequence length and warn user
+        const validationResult = this.validateSequenceLength(this.mrnaSequence);
+        if (!validationResult.isValid) {
+            if (this.educationalCallback) {
+                this.educationalCallback('sequence:warning', validationResult);
+            }
+            return;
+        }
+        
+        this.stepMode = stepMode;
+        this.isAnimating = true;
+        this.isPaused = false;
+        this.currentCodonIndex = 0;
+        this.proteinChain = [];
+        this.waitingForStep = false;
+        
+        console.log(`Starting central dogma: DNA -> RNA -> Protein`);
+        
+        if (this.educationalCallback) {
+            this.educationalCallback('transcription:started', {
+                dnaSequence: this.dnaSequence,
+                mrnaSequence: this.mrnaSequence
+            });
+        }
+
+        // First show transcription, then translation
+        await this.runCentralDogmaAnimation();
+    }
+
     async startTranslation(mrnaSequence, stepMode = false) {
         if (this.isAnimating) return;
 
@@ -302,6 +337,76 @@ class TranslationEngine {
 
         this.setupVisualization();
         await this.runAnimation();
+    }
+
+    async runCentralDogmaAnimation() {
+        // Phase 1: Show transcription (DNA -> mRNA)
+        await this.setupTranscriptionVisualization();
+        await this.animateTranscription();
+        
+        // Phase 2: Show translation (mRNA -> Protein)
+        await this.sleep(1000); // Brief pause between phases
+        await this.setupTranslationVisualization();
+        await this.runAnimation();
+    }
+
+    async setupTranscriptionVisualization() {
+        this.svg.innerHTML = '';
+        
+        // Calculate dynamic layout based on sequence length
+        this.layout = this.calculateLayout(this.dnaSequence.length);
+        
+        // Update layout for transcription (need space for both DNA and mRNA)
+        this.layout.dnaY = 80;
+        this.layout.mrnaY = 160;
+        this.layout.ribosomeY = 350;
+        this.layout.proteinY = 500;
+        
+        // Title
+        this.addText(50, 40, 'Step 1: Transcription (DNA → mRNA)', 'font-family: Arial; font-size: 24px; font-weight: bold; fill: #2c3e50;');
+        
+        // Draw cell membrane as background
+        this.drawCellMembrane();
+        
+        // Draw DNA sequence
+        const startX = this.layout.startX;
+        const nucleotideSpacing = this.layout.nucleotideSpacing;
+        
+        for (let i = 0; i < this.dnaSequence.length; i++) {
+            const x = startX + i * nucleotideSpacing;
+            const nucleotide = this.dnaSequence[i];
+            
+            // Create DNA nucleotide box
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x - this.layout.nucleotideSize/2);
+            rect.setAttribute('y', this.layout.dnaY - this.layout.nucleotideSize/2);
+            rect.setAttribute('width', this.layout.nucleotideSize);
+            rect.setAttribute('height', this.layout.nucleotideSize);
+            rect.setAttribute('rx', 6);
+            rect.setAttribute('fill', this.getDNANucleotideColor(nucleotide));
+            rect.setAttribute('stroke', '#333');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('class', `dna-nucleotide dna-nucleotide-${i}`);
+            rect.style.cursor = 'pointer';
+            
+            // Add hover events
+            rect.addEventListener('mouseenter', (e) => {
+                this.showTooltip(this.getDNANucleotideInfo(nucleotide, i), e);
+            });
+            
+            rect.addEventListener('mouseleave', () => {
+                this.hideTooltip();
+            });
+            
+            this.svg.appendChild(rect);
+            
+            // Add nucleotide letter
+            this.addText(x, this.layout.dnaY + 5, nucleotide, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle;');
+        }
+        
+        // Add labels
+        this.addText(50, this.layout.dnaY - 20, 'DNA (Template):', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        this.addText(50, this.layout.mrnaY - 20, 'mRNA:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
     }
 
     setupVisualization() {
@@ -371,6 +476,16 @@ class TranslationEngine {
         this.addText(50, this.layout.proteinY, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
     }
 
+    getDNANucleotideColor(nucleotide) {
+        const colors = {
+            'A': '#FF5722',  // Deep Red
+            'T': '#2196F3',  // Deep Blue  
+            'G': '#4CAF50',  // Deep Green
+            'C': '#FF9800'   // Deep Orange
+        };
+        return colors[nucleotide] || '#999';
+    }
+
     getNucleotideColor(nucleotide) {
         const colors = {
             'A': '#E57373',  // Red
@@ -379,6 +494,265 @@ class TranslationEngine {
             'C': '#FFB74D'   // Orange
         };
         return colors[nucleotide] || '#999';
+    }
+
+    getDNANucleotideInfo(nucleotide, position) {
+        const info = {
+            'A': {
+                name: 'Adenine',
+                type: 'Purine',
+                pairs: 'Thymine (T)',
+                transcribes: 'Uracil (U)',
+                structure: 'Double-ring structure'
+            },
+            'T': {
+                name: 'Thymine',
+                type: 'Pyrimidine',
+                pairs: 'Adenine (A)',
+                transcribes: 'Adenine (A)',
+                structure: 'Single-ring structure',
+                note: 'Found in DNA, not RNA'
+            },
+            'G': {
+                name: 'Guanine',
+                type: 'Purine',
+                pairs: 'Cytosine (C)',
+                transcribes: 'Cytosine (C)',
+                structure: 'Double-ring structure'
+            },
+            'C': {
+                name: 'Cytosine',
+                type: 'Pyrimidine',
+                pairs: 'Guanine (G)',
+                transcribes: 'Guanine (G)',
+                structure: 'Single-ring structure'
+            }
+        }[nucleotide];
+
+        const codonIndex = Math.floor(position / 3);
+        const positionInCodon = (position % 3) + 1;
+        
+        return `
+            <strong>${info.name} (${nucleotide})</strong><br>
+            <em>${info.type} base</em><br>
+            Position: ${position + 1} (Codon ${codonIndex + 1}, Position ${positionInCodon})<br>
+            Transcribes to: ${info.transcribes}<br>
+            Structure: ${info.structure}
+            ${info.note ? '<br><small>' + info.note + '</small>' : ''}
+        `;
+    }
+
+    async animateTranscription() {
+        const startX = this.layout.startX;
+        const nucleotideSpacing = this.layout.nucleotideSpacing;
+        
+        // Add RNA polymerase animation (simplified)
+        const polymerase = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        polymerase.setAttribute('cx', startX - 30);
+        polymerase.setAttribute('cy', (this.layout.dnaY + this.layout.mrnaY) / 2);
+        polymerase.setAttribute('rx', '25');
+        polymerase.setAttribute('ry', '15');
+        polymerase.setAttribute('fill', '#9C27B0');
+        polymerase.setAttribute('stroke', '#4A148C');
+        polymerase.setAttribute('stroke-width', '2');
+        polymerase.style.cursor = 'pointer';
+        
+        // Add tooltip for RNA polymerase
+        polymerase.addEventListener('mouseenter', (e) => {
+            this.showTooltip('RNA Polymerase - Transcribes DNA to mRNA', e);
+        });
+        polymerase.addEventListener('mouseleave', () => {
+            this.hideTooltip();
+        });
+        
+        this.svg.appendChild(polymerase);
+        
+        if (this.educationalCallback) {
+            this.educationalCallback('transcription:started', {
+                message: 'RNA polymerase begins transcribing DNA template to mRNA'
+            });
+        }
+        
+        // Animate transcription of each nucleotide
+        for (let i = 0; i < this.dnaSequence.length; i++) {
+            const x = startX + i * nucleotideSpacing;
+            const dnaBase = this.dnaSequence[i];
+            const mrnaBase = this.getMRNAComplement(dnaBase);
+            
+            // Move RNA polymerase
+            const polymeraseAnimation = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform');
+            polymeraseAnimation.setAttribute('attributeName', 'transform');
+            polymeraseAnimation.setAttribute('type', 'translate');
+            polymeraseAnimation.setAttribute('from', `${i * nucleotideSpacing} 0`);
+            polymeraseAnimation.setAttribute('to', `${(i + 1) * nucleotideSpacing} 0`);
+            polymeraseAnimation.setAttribute('dur', `${this.speed / 1000}s`);
+            polymerase.appendChild(polymeraseAnimation);
+            
+            // Create corresponding mRNA nucleotide
+            const mrnaRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            mrnaRect.setAttribute('x', x - this.layout.nucleotideSize/2);
+            mrnaRect.setAttribute('y', this.layout.mrnaY - this.layout.nucleotideSize/2);
+            mrnaRect.setAttribute('width', this.layout.nucleotideSize);
+            mrnaRect.setAttribute('height', this.layout.nucleotideSize);
+            mrnaRect.setAttribute('rx', 6);
+            mrnaRect.setAttribute('fill', this.getNucleotideColor(mrnaBase));
+            mrnaRect.setAttribute('stroke', '#333');
+            mrnaRect.setAttribute('stroke-width', '2');
+            mrnaRect.setAttribute('opacity', '0');
+            
+            // Animate appearance
+            const appear = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+            appear.setAttribute('attributeName', 'opacity');
+            appear.setAttribute('from', '0');
+            appear.setAttribute('to', '1');
+            appear.setAttribute('dur', '0.3s');
+            appear.setAttribute('fill', 'freeze');
+            mrnaRect.appendChild(appear);
+            
+            this.svg.appendChild(mrnaRect);
+            
+            // Add mRNA nucleotide letter
+            const mrnaText = this.addText(x, this.layout.mrnaY + 5, mrnaBase, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle; opacity: 0;');
+            const textAppear = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+            textAppear.setAttribute('attributeName', 'opacity');
+            textAppear.setAttribute('from', '0');
+            textAppear.setAttribute('to', '1');
+            textAppear.setAttribute('dur', '0.3s');
+            textAppear.setAttribute('fill', 'freeze');
+            mrnaText.appendChild(textAppear);
+            
+            // Add tooltip
+            mrnaRect.addEventListener('mouseenter', (e) => {
+                this.showTooltip(this.getNucleotideInfo(mrnaBase, i), e);
+            });
+            mrnaRect.addEventListener('mouseleave', () => {
+                this.hideTooltip();
+            });
+            
+            if (this.educationalCallback) {
+                this.educationalCallback('transcription:nucleotide', {
+                    dnaBase: dnaBase,
+                    mrnaBase: mrnaBase,
+                    position: i + 1
+                });
+            }
+            
+            await this.sleep(this.speed);
+        }
+        
+        if (this.educationalCallback) {
+            this.educationalCallback('transcription:complete', {
+                message: 'Transcription complete! mRNA ready for translation'
+            });
+        }
+    }
+
+    getMRNAComplement(dnaBase) {
+        const complementMap = {
+            'A': 'U',
+            'T': 'A',
+            'G': 'C',
+            'C': 'G'
+        };
+        return complementMap[dnaBase] || 'N';
+    }
+
+    async setupTranslationVisualization() {
+        // Don't clear the SVG - keep the transcription elements
+        // Just update the title and add translation-specific elements
+        
+        // Calculate dynamic layout based on sequence length
+        this.layout = this.calculateLayout(this.mrnaSequence.length);
+        
+        // Update layout to accommodate all three sequences with more spacing
+        this.layout.dnaY = 80;
+        this.layout.mrnaY = 160;
+        this.layout.ribosomeY = 280;
+        this.layout.proteinY = 420;
+        
+        // Update title to show complete central dogma and add spacing
+        const existingTitle = this.svg.querySelector('text');
+        if (existingTitle) {
+            existingTitle.textContent = 'Step 2: Translation (mRNA → Protein)';
+            existingTitle.setAttribute('y', '40');
+        } else {
+            this.addText(500, 40, 'Step 2: Translation (mRNA → Protein)', 'font-family: Arial; font-size: 20px; font-weight: bold; fill: #2c3e50; text-anchor: middle;');
+        }
+        
+        // Add DNA label if not already present
+        const existingDNALabel = Array.from(this.svg.querySelectorAll('text')).find(t => t.textContent.includes('DNA'));
+        if (!existingDNALabel) {
+            this.addText(50, this.layout.dnaY - 20, 'DNA (Template):', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        }
+        
+        // Ensure mRNA label is present and positioned correctly
+        const existingMRNALabel = Array.from(this.svg.querySelectorAll('text')).find(t => t.textContent === 'mRNA:');
+        if (existingMRNALabel) {
+            existingMRNALabel.setAttribute('y', this.layout.mrnaY - 20);
+        } else {
+            this.addText(50, this.layout.mrnaY - 20, 'mRNA:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        }
+        
+        // Draw ribosome at the start position for translation
+        const startX = this.layout.startX;
+        this.drawRibosome(startX, this.layout.ribosomeY);
+        
+        // Add protein label
+        this.addText(50, this.layout.proteinY - 20, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
+        
+        // Add connecting arrows to show the flow
+        this.addConnectionArrows();
+        
+        if (this.educationalCallback) {
+            this.educationalCallback('translation:started', {
+                sequence: this.mrnaSequence,
+                startPosition: 0
+            });
+        }
+    }
+    
+    addConnectionArrows() {
+        const arrowX = 950; // Position arrows on the right side
+        
+        // DNA to mRNA arrow
+        const dnaToMRNA = this.createArrow(arrowX, this.layout.dnaY + 25, arrowX, this.layout.mrnaY - 35);
+        dnaToMRNA.setAttribute('opacity', '0.8');
+        this.svg.appendChild(dnaToMRNA);
+        
+        // Add transcription label (positioned to the left of the arrow)
+        const transcriptionY = (this.layout.dnaY + this.layout.mrnaY) / 2;
+        const transcriptionLabel = this.addText(arrowX - 15, transcriptionY, 'Transcription', 'font-family: Arial; font-size: 11px; font-weight: bold; fill: #4a5568; text-anchor: end;');
+        
+        // mRNA to Protein arrow
+        const mrnaToProtein = this.createArrow(arrowX, this.layout.mrnaY + 25, arrowX, this.layout.proteinY - 35);
+        mrnaToProtein.setAttribute('opacity', '0.8');
+        this.svg.appendChild(mrnaToProtein);
+        
+        // Add translation label (positioned to the left of the arrow)
+        const translationY = (this.layout.mrnaY + this.layout.proteinY) / 2;
+        const translationLabel = this.addText(arrowX - 15, translationY, 'Translation', 'font-family: Arial; font-size: 11px; font-weight: bold; fill: #4a5568; text-anchor: end;');
+    }
+    
+    createArrow(x1, y1, x2, y2) {
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        // Arrow line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2 - 10);
+        line.setAttribute('stroke', '#4a5568');
+        line.setAttribute('stroke-width', '2');
+        group.appendChild(line);
+        
+        // Arrow head
+        const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        arrowHead.setAttribute('points', `${x2-5},${y2-10} ${x2+5},${y2-10} ${x2},${y2}`);
+        arrowHead.setAttribute('fill', '#4a5568');
+        group.appendChild(arrowHead);
+        
+        return group;
     }
 
     drawRibosome(x, y) {

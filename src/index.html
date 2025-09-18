@@ -104,7 +104,7 @@
             color: #4a5568;
             font-weight: 500;
         }
-        .mrna-input {
+        .dna-input {
             width: 100%;
             max-width: 400px;
             padding: 1rem;
@@ -116,7 +116,7 @@
             text-transform: uppercase;
             transition: border-color 0.3s ease;
         }
-        .mrna-input:focus {
+        .dna-input:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -181,7 +181,7 @@
         
         /* Focus styles for keyboard navigation */
         .btn:focus, 
-        .mrna-input:focus, 
+        .dna-input:focus, 
         select:focus,
         .nav-links a:focus {
             outline: 3px solid #667eea;
@@ -228,32 +228,32 @@
     <main class="container" role="main">
         <div class="main-panel">
             <h2 class="section-title" id="process-title">
-                ➡️ Forward Process: RNA → Protein
+                ➡️ Forward Process: DNA → RNA → Protein
             </h2>
             <p style="margin-bottom: 2rem; color: #718096; line-height: 1.6;" id="description">
-                An interactive educational simulation of protein translation from mRNA sequences. Explore the molecular details of how ribosomes read genetic code and synthesize proteins.
+                An interactive educational simulation of the complete central dogma: DNA transcription to mRNA, followed by translation to proteins. Experience the full molecular biology workflow.
             </p>
 
             <div class="input-section" role="region" aria-labelledby="input-heading">
                 <h3 id="input-heading" class="sr-only">Translation Input Parameters</h3>
                 <div class="input-group">
-                    <label for="mrna-input">
-                        mRNA Sequence (nucleotide bases):
+                    <label for="dna-input">
+                        DNA Sequence (template strand):
                     </label>
                     <input 
                         type="text" 
-                        id="mrna-input" 
-                        class="mrna-input"
-                        value="AUGAAACGCAUUUAA"
-                        placeholder="Enter mRNA sequence (e.g., AUGAAACGCAUUUAA)"
-                        aria-describedby="mrna-help sequence-rules"
-                        aria-label="mRNA sequence input field"
+                        id="dna-input" 
+                        class="dna-input"
+                        value="TACTTTTGCGTAAATT"
+                        placeholder="Enter DNA sequence (e.g., TACTTTTGCGTAAATT)"
+                        aria-describedby="dna-help sequence-rules"
+                        aria-label="DNA sequence input field"
                         autocomplete="off"
                         spellcheck="false"
                     >
-                    <div id="mrna-help" class="sr-only">Enter a sequence of RNA nucleotides to translate into a protein. The sequence will be processed in groups of three nucleotides called codons.</div>
+                    <div id="dna-help" class="sr-only">Enter a DNA template strand sequence. This will be transcribed to mRNA and then translated into a protein. The sequence will be processed in groups of three nucleotides called codons.</div>
                     <small id="sequence-rules" style="color: #718096; margin-top: 0.5rem; display: block;">
-                        Use RNA nucleotides: A, U, G, C (not T). Sequence should be in triplets (codons).
+                        Use DNA nucleotides: A, T, G, C (template strand). Will be transcribed to mRNA then translated to protein.
                     </small>
                 </div>
 
@@ -272,9 +272,9 @@
                     <button id="start-btn" class="btn btn-primary" 
                             aria-describedby="start-help"
                             aria-keyshortcuts="Enter">
-                        ▶️ Start Translation
+                        ▶️ Start Central Dogma
                     </button>
-                    <div id="start-help" class="sr-only">Begin the mRNA to protein translation animation using the sequence you entered</div>
+                    <div id="start-help" class="sr-only">Begin the complete central dogma process: DNA transcription to mRNA, then translation to protein using the DNA sequence you entered</div>
 
                     <button id="pause-btn" class="btn btn-secondary" 
                             aria-describedby="pause-help"
@@ -452,21 +452,45 @@
         }
 
         function startTranslation() {
-            const mrnaSequence = document.getElementById('mrna-input').value.toUpperCase();
+            const dnaSequence = document.getElementById('dna-input').value.toUpperCase();
             const stepMode = false; // Always use continuous mode
 
-            if (!mrnaSequence) {
-                announceToScreenReader('Error: Please enter an mRNA sequence before starting translation.');
-                alert('Please enter an mRNA sequence');
+            if (!dnaSequence) {
+                announceToScreenReader('Error: Please enter a DNA sequence before starting the central dogma process.');
+                alert('Please enter a DNA sequence');
                 return;
             }
 
+            // Validate DNA sequence (should only contain A, T, G, C)
+            const validDNABases = /^[ATGC]+$/;
+            if (!validDNABases.test(dnaSequence)) {
+                announceToScreenReader('Error: DNA sequence contains invalid bases. Please use only A, T, G, and C.');
+                alert('Please enter a valid DNA sequence using only A, T, G, and C');
+                return;
+            }
+
+            // Convert DNA template strand to mRNA
+            const mrnaSequence = transcribeDNAToRNA(dnaSequence);
+
             // Update button states for accessibility
             updateButtonStates('animating');
-            announceToScreenReader(`Starting translation of mRNA sequence: ${mrnaSequence}. Animation beginning.`);
+            announceToScreenReader(`Starting central dogma process with DNA sequence: ${dnaSequence}. First transcribing to mRNA, then translating to protein.`);
             
-            console.log('Starting translation:', { mrnaSequence, stepMode });
-            translationEngine.startTranslation(mrnaSequence, stepMode);
+            console.log('Starting central dogma:', { dnaSequence, mrnaSequence, stepMode });
+            translationEngine.startCentralDogma(dnaSequence, mrnaSequence, stepMode);
+        }
+        
+        function transcribeDNAToRNA(dnaTemplate) {
+            // DNA template strand -> mRNA (complementary base pairing)
+            // A -> U, T -> A, G -> C, C -> G
+            const transcriptionMap = {
+                'A': 'U',
+                'T': 'A', 
+                'G': 'C',
+                'C': 'G'
+            };
+            
+            return dnaTemplate.split('').map(base => transcriptionMap[base] || 'N').join('');
         }
         
         function announceToScreenReader(message) {
