@@ -356,11 +356,11 @@ class TranslationEngine {
         // Calculate dynamic layout based on sequence length
         this.layout = this.calculateLayout(this.dnaSequence.length);
         
-        // Update layout for transcription (need space for both DNA and mRNA)
-        this.layout.dnaY = 80;
-        this.layout.mrnaY = 160;
-        this.layout.ribosomeY = 350;
-        this.layout.proteinY = 500;
+        // Update layout for transcription (need space for both DNA and mRNA) with more spacing from title
+        this.layout.dnaY = 120;  // Moved down from 80 to create more space below title
+        this.layout.mrnaY = 200;  // Moved down from 160
+        this.layout.ribosomeY = 380;  // Moved down from 350
+        this.layout.proteinY = 530;  // Moved down from 500
         
         // Title
         this.addText(50, 40, 'Step 1: Transcription (DNA → mRNA)', 'font-family: Arial; font-size: 24px; font-weight: bold; fill: #2c3e50;');
@@ -667,11 +667,11 @@ class TranslationEngine {
         // Calculate dynamic layout based on sequence length
         this.layout = this.calculateLayout(this.mrnaSequence.length);
         
-        // Update layout to accommodate all three sequences with more spacing
-        this.layout.dnaY = 80;
-        this.layout.mrnaY = 160;
-        this.layout.ribosomeY = 280;
-        this.layout.proteinY = 420;
+        // Update layout to accommodate all three sequences with more spacing from title
+        this.layout.dnaY = 120;  // Consistent with transcription phase
+        this.layout.mrnaY = 200;  // Consistent with transcription phase
+        this.layout.ribosomeY = 320;  // Moved down from 280 to create more space
+        this.layout.proteinY = 460;  // Moved down from 420
         
         // Update title to show complete central dogma and add spacing
         const existingTitle = this.svg.querySelector('text');
@@ -1112,10 +1112,10 @@ class TranslationEngine {
         // Create protein sequence string with full amino acid names
         const proteinSequence = this.proteinChain.join(' → ');
         
-        // Add completion summary box positioned on the left side
+        // Add completion summary box positioned on the left side with updated spacing
         const summaryRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         summaryRect.setAttribute('x', 50);
-        summaryRect.setAttribute('y', 220);
+        summaryRect.setAttribute('y', 260);  // Moved down from 220 to align with new spacing
         summaryRect.setAttribute('width', 350);
         summaryRect.setAttribute('height', 160);
         summaryRect.setAttribute('rx', 12);
@@ -1126,12 +1126,12 @@ class TranslationEngine {
         this.svg.appendChild(summaryRect);
         
         // Add completion details
-        this.addText(70, 250, 'Translation Complete! 🎉', 'font-family: Arial; font-size: 18px; font-weight: bold; fill: #2E7D32;');
-        this.addText(70, 275, `Protein length: ${this.proteinChain.length} amino acids`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
-        this.addText(70, 295, `mRNA length: ${this.mrnaSequence.length} nucleotides`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(70, 290, 'Translation Complete! 🎉', 'font-family: Arial; font-size: 18px; font-weight: bold; fill: #2E7D32;');
+        this.addText(70, 315, `Protein length: ${this.proteinChain.length} amino acids`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
+        this.addText(70, 335, `mRNA length: ${this.mrnaSequence.length} nucleotides`, 'font-family: Arial; font-size: 14px; fill: #388E3C;');
         
         // Add protein sequence (with line wrapping for long sequences)
-        this.addText(70, 320, 'Protein sequence:', 'font-family: Arial; font-size: 14px; font-weight: bold; fill: #2E7D32;');
+        this.addText(70, 360, 'Protein sequence:', 'font-family: Arial; font-size: 14px; font-weight: bold; fill: #2E7D32;');
         
         // Handle protein sequences by wrapping at word boundaries
         const maxCharsPerLine = 35; // Adjusted for full amino acid names
@@ -1140,7 +1140,7 @@ class TranslationEngine {
             // Split into multiple lines at amino acid boundaries
             const aminoAcids = proteinSequence.split(' → ');
             let currentLine = '';
-            let yPosition = 340;
+            let yPosition = 380;  // Moved down from 340 to align with banner
             
             for (let i = 0; i < aminoAcids.length; i++) {
                 const aminoAcid = aminoAcids[i];
@@ -1164,7 +1164,7 @@ class TranslationEngine {
             }
         } else {
             // Short sequence - display on single line
-            this.addText(70, 340, proteinSequence, 'font-family: Arial; font-size: 12px; fill: #1976D2; font-weight: bold;');
+            this.addText(70, 380, proteinSequence, 'font-family: Arial; font-size: 12px; fill: #1976D2; font-weight: bold;');
         }
     }
 
