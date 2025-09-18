@@ -1083,15 +1083,15 @@ class TranslationEngine {
 
     getAminoAcidColor(aminoAcid) {
         const colors = {
-            'Methionine': '#4CAF50', 'Phenylalanine': '#FF9800', 'Leucine': '#2196F3',
-            'Serine': '#9C27B0', 'Tyrosine': '#FF5722', 'Cysteine': '#607D8B',
-            'Tryptophan': '#E91E63', 'Proline': '#795548', 'Histidine': '#009688',
-            'Glutamine': '#FFC107', 'Arginine': '#3F51B5', 'Isoleucine': '#8BC34A',
-            'Threonine': '#FF7043', 'Asparagine': '#BA68C8', 'Lysine': '#26A69A',
-            'Valine': '#FFA726', 'Alanine': '#66BB6A', 'Aspartic Acid': '#EF5350',
-            'Glutamic Acid': '#AB47BC', 'Glycine': '#42A5F5'
+            'Methionine': '#388e3c', 'Phenylalanine': '#f57c00', 'Leucine': '#1976d2',
+            'Serine': '#7b1fa2', 'Tyrosine': '#d84315', 'Cysteine': '#455a64',
+            'Tryptophan': '#c2185b', 'Proline': '#5d4037', 'Histidine': '#00695c',
+            'Glutamine': '#f9a825', 'Arginine': '#303f9f', 'Isoleucine': '#689f38',
+            'Threonine': '#bf360c', 'Asparagine': '#8e24aa', 'Lysine': '#00796b',
+            'Valine': '#ff8f00', 'Alanine': '#558b2f', 'Aspartic Acid': '#d32f2f',
+            'Glutamic Acid': '#7b1fa2', 'Glycine': '#1976d2'
         };
-        return colors[aminoAcid] || '#9E9E9E';
+        return colors[aminoAcid] || '#757575';
     }
 
     getAminoAcidAbbr(aminoAcid) {

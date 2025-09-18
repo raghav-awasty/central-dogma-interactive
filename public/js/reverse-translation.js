@@ -383,13 +383,24 @@ class ReverseTranslationEngine {
         title.textContent = 'Step 1: Protein Sequence Input';
         svg.appendChild(title);
         
-        // Protein sequence
-        const proteinY = 80;
-        const spacing = Math.min(60, 800 / proteinSequence.length);
+        // Add Protein label with more horizontal spacing to avoid arrow overlap
+        const proteinLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        proteinLabel.setAttribute('x', '30');  // Moved left from 50 to avoid arrow overlap
+        proteinLabel.setAttribute('y', '55');  // Moved up from 60 to create more space
+        proteinLabel.setAttribute('font-size', '16');
+        proteinLabel.setAttribute('font-weight', 'bold');
+        proteinLabel.setAttribute('fill', '#333');
+        proteinLabel.textContent = 'Protein:';
+        svg.appendChild(proteinLabel);
+        
+        // Protein sequence - align with codon starting positions with good spacing
+        const proteinY = 90;  // Back to previous position
+        const codonSpacing = Math.min(25, 800 / (proteinSequence.length * 3)); // Same as codon calculation
+        const proteinSpacing = codonSpacing * 3; // Each protein aligns with a 3-nucleotide codon
         
         for (let i = 0; i < proteinSequence.length; i++) {
             const aa = proteinSequence[i];
-            const x = 100 + i * spacing;
+            const x = 100 + i * proteinSpacing; // Align with first nucleotide of each codon
             
             // Amino acid circle
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -447,8 +458,18 @@ class ReverseTranslationEngine {
         const title = svg.querySelector('text');
         title.textContent = 'Step 2: Reverse Translation (Protein → mRNA)';
         
-        const mrnaY = 200;
+        const mrnaY = 210;  // Back to previous position
         const spacing = Math.min(25, 800 / (mrnaSequence.length / 3));
+        
+        // Add mRNA label with more horizontal spacing to avoid arrow overlap
+        const mrnaLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        mrnaLabel.setAttribute('x', '30');  // Moved left from 50 to avoid arrow overlap
+        mrnaLabel.setAttribute('y', '175');  // Moved up from 180 to create more space
+        mrnaLabel.setAttribute('font-size', '16');
+        mrnaLabel.setAttribute('font-weight', 'bold');
+        mrnaLabel.setAttribute('fill', '#333');
+        mrnaLabel.textContent = 'mRNA:';
+        svg.appendChild(mrnaLabel);
         
         let codonIndex = 0;
         for (let i = 0; i < proteinSequence.length; i++) {
@@ -456,8 +477,9 @@ class ReverseTranslationEngine {
             const codon = mrnaSequence.substr(codonIndex * 3, 3);
             const x = 100 + i * spacing * 3;
             
-            // Show arrow pointing down
-            const arrow = this.createArrow(100 + i * 60, 120, 100 + i * 60, 170);
+            // Show arrow pointing down - align with protein position
+            const proteinX = 100 + i * (spacing * 3); // Match protein positioning calculation
+            const arrow = this.createArrow(proteinX, 130, proteinX, 180);  // Back to previous Y positions
             arrow.setAttribute('opacity', '0');
             svg.appendChild(arrow);
             
@@ -532,11 +554,21 @@ class ReverseTranslationEngine {
         const title = svg.querySelector('text');
         title.textContent = 'Step 3: Reverse Transcription (mRNA → DNA)';
         
-        const dnaY = 320;
+        const dnaY = 330;  // Back to previous position
         const spacing = Math.min(25, 800 / dnaSequence.length);
         
+        // Add DNA label with more horizontal spacing to avoid arrow overlap
+        const dnaLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        dnaLabel.setAttribute('x', '30');  // Moved left from 50 to avoid arrow overlap
+        dnaLabel.setAttribute('y', '295');  // Moved up from 300 to create more space
+        dnaLabel.setAttribute('font-size', '16');
+        dnaLabel.setAttribute('font-weight', 'bold');
+        dnaLabel.setAttribute('fill', '#333');
+        dnaLabel.textContent = 'DNA (Template):';
+        svg.appendChild(dnaLabel);
+        
         // Show arrow pointing down from mRNA to DNA
-        const bigArrow = this.createArrow(500, 230, 500, 280);
+        const bigArrow = this.createArrow(500, 240, 500, 290);  // Back to previous Y positions
         bigArrow.setAttribute('opacity', '0');
         svg.appendChild(bigArrow);
         
@@ -692,14 +724,14 @@ class ReverseTranslationEngine {
 
     getAminoAcidColor(aa) {
         const colors = {
-            'A': '#ff9999', 'R': '#ff6666', 'N': '#ffcc99', 'D': '#ff9966',
-            'C': '#99ff99', 'Q': '#ccff99', 'E': '#99ff66', 'G': '#99ffff',
-            'H': '#99ccff', 'I': '#cc99ff', 'L': '#9999ff', 'K': '#6699ff',
-            'M': '#ffccff', 'F': '#ff99cc', 'P': '#ff66cc', 'S': '#ffcccc',
-            'T': '#ccccff', 'W': '#ccffcc', 'Y': '#ffffcc', 'V': '#ffccaa',
-            '*': '#999999'
+            'A': '#d32f2f', 'R': '#c62828', 'N': '#ff8f00', 'D': '#f57c00',
+            'C': '#388e3c', 'Q': '#689f38', 'E': '#558b2f', 'G': '#00796b',
+            'H': '#1976d2', 'I': '#7b1fa2', 'L': '#512da8', 'K': '#303f9f',
+            'M': '#8e24aa', 'F': '#c2185b', 'P': '#ad1457', 'S': '#d84315',
+            'T': '#5d4037', 'W': '#455a64', 'Y': '#f9a825', 'V': '#6a4c93',
+            '*': '#424242'
         };
-        return colors[aa] || '#dddddd';
+        return colors[aa] || '#757575';
     }
 
     getAminoAcidName(aa) {
