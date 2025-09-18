@@ -573,20 +573,17 @@ class TranslationEngine {
             });
         }
         
+        // Add transcription arrow during transcription phase
+        this.addTranscriptionArrow();
+        
         // Animate transcription of each nucleotide
         for (let i = 0; i < this.dnaSequence.length; i++) {
             const x = startX + i * nucleotideSpacing;
             const dnaBase = this.dnaSequence[i];
             const mrnaBase = this.getMRNAComplement(dnaBase);
             
-            // Move RNA polymerase at fixed smooth rate
-            const polymeraseAnimation = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform');
-            polymeraseAnimation.setAttribute('attributeName', 'transform');
-            polymeraseAnimation.setAttribute('type', 'translate');
-            polymeraseAnimation.setAttribute('from', `${i * nucleotideSpacing} 0`);
-            polymeraseAnimation.setAttribute('to', `${(i + 1) * nucleotideSpacing} 0`);
-            polymeraseAnimation.setAttribute('dur', '0.2s'); // Fixed smooth rate
-            polymerase.appendChild(polymeraseAnimation);
+            // Move RNA polymerase smoothly to current position
+            polymerase.setAttribute('cx', startX - 30 + i * nucleotideSpacing);
             
             // Create corresponding mRNA nucleotide
             const mrnaRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -600,26 +597,15 @@ class TranslationEngine {
             mrnaRect.setAttribute('stroke-width', '2');
             mrnaRect.setAttribute('opacity', '0');
             
-            // Animate appearance
-            const appear = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-            appear.setAttribute('attributeName', 'opacity');
-            appear.setAttribute('from', '0');
-            appear.setAttribute('to', '1');
-            appear.setAttribute('dur', '0.3s');
-            appear.setAttribute('fill', 'freeze');
-            mrnaRect.appendChild(appear);
-            
             this.svg.appendChild(mrnaRect);
             
             // Add mRNA nucleotide letter
-            const mrnaText = this.addText(x, this.layout.mrnaY + 5, mrnaBase, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle; opacity: 0;');
-            const textAppear = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
-            textAppear.setAttribute('attributeName', 'opacity');
-            textAppear.setAttribute('from', '0');
-            textAppear.setAttribute('to', '1');
-            textAppear.setAttribute('dur', '0.3s');
-            textAppear.setAttribute('fill', 'freeze');
-            mrnaText.appendChild(textAppear);
+            const mrnaText = this.addText(x, this.layout.mrnaY + 5, mrnaBase, 'font-family: Arial; font-size: 16px; font-weight: bold; fill: white; text-anchor: middle;');
+            mrnaText.setAttribute('opacity', '0');
+            
+            // JavaScript-based fade-in animation
+            this.animateFadeIn(mrnaRect, 300);
+            this.animateFadeIn(mrnaText, 300);
             
             // Add tooltip
             mrnaRect.addEventListener('mouseenter', (e) => {
@@ -637,7 +623,7 @@ class TranslationEngine {
                 });
             }
             
-            await this.sleep(200); // Fixed smooth timing for transcription
+            await this.sleep(350); // 350ms delay to allow full fade-in animation
         }
         
         if (this.educationalCallback) {
@@ -655,6 +641,23 @@ class TranslationEngine {
             'C': 'G'
         };
         return complementMap[dnaBase] || 'N';
+    }
+    
+    animateFadeIn(element, duration = 300) {
+        const startTime = performance.now();
+        
+        const fade = (currentTime) => {
+            const elapsedTime = currentTime - startTime;
+            const progress = Math.min(elapsedTime / duration, 1);
+            
+            element.setAttribute('opacity', progress);
+            
+            if (progress < 1) {
+                requestAnimationFrame(fade);
+            }
+        };
+        
+        requestAnimationFrame(fade);
     }
 
     async setupTranslationVisualization() {
@@ -700,8 +703,8 @@ class TranslationEngine {
         // Add protein label
         this.addText(50, this.layout.proteinY - 20, 'Protein:', 'font-family: Arial; font-size: 16px; font-weight: bold; fill: #333;');
         
-        // Add connecting arrows to show the flow
-        this.addConnectionArrows();
+        // Add translation arrow during translation phase
+        this.addTranslationArrow();
         
         if (this.educationalCallback) {
             this.educationalCallback('translation:started', {
@@ -711,26 +714,34 @@ class TranslationEngine {
         }
     }
     
-    addConnectionArrows() {
+    addTranscriptionArrow() {
         const arrowX = 950; // Position arrows on the right side
         
         // DNA to mRNA arrow
         const dnaToMRNA = this.createArrow(arrowX, this.layout.dnaY + 25, arrowX, this.layout.mrnaY - 35);
         dnaToMRNA.setAttribute('opacity', '0.8');
+        dnaToMRNA.setAttribute('id', 'transcription-arrow'); // ID for easy identification
         this.svg.appendChild(dnaToMRNA);
         
         // Add transcription label (positioned to the left of the arrow)
         const transcriptionY = (this.layout.dnaY + this.layout.mrnaY) / 2;
         const transcriptionLabel = this.addText(arrowX - 15, transcriptionY, 'Transcription', 'font-family: Arial; font-size: 11px; font-weight: bold; fill: #4a5568; text-anchor: end;');
+        transcriptionLabel.setAttribute('id', 'transcription-label');
+    }
+    
+    addTranslationArrow() {
+        const arrowX = 950; // Position arrows on the right side
         
         // mRNA to Protein arrow
         const mrnaToProtein = this.createArrow(arrowX, this.layout.mrnaY + 25, arrowX, this.layout.proteinY - 35);
         mrnaToProtein.setAttribute('opacity', '0.8');
+        mrnaToProtein.setAttribute('id', 'translation-arrow'); // ID for easy identification
         this.svg.appendChild(mrnaToProtein);
         
         // Add translation label (positioned to the left of the arrow)
         const translationY = (this.layout.mrnaY + this.layout.proteinY) / 2;
         const translationLabel = this.addText(arrowX - 15, translationY, 'Translation', 'font-family: Arial; font-size: 11px; font-weight: bold; fill: #4a5568; text-anchor: end;');
+        translationLabel.setAttribute('id', 'translation-label');
     }
     
     createArrow(x1, y1, x2, y2) {
